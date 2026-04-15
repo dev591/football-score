@@ -345,26 +345,37 @@ export default function LandingPage() {
         <section className="py-24 bg-surface-container-lowest">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="font-headline text-5xl md:text-7xl font-black italic uppercase tracking-tighter">THE ROAD TO GLORY</h2>
-              <p className="text-secondary mt-4 max-w-xl mx-auto uppercase text-xs tracking-widest">Master the process, claim the crown.</p>
+              <h2 className="font-headline text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-white">THE ROAD TO GLORY</h2>
+              <p className="text-secondary mt-4 max-w-xl mx-auto uppercase text-xs tracking-widest leading-loose">Master the process, claim the crown. Built for the elite.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-surface-container-high p-10 flex flex-col items-center text-center group border-t-4 border-transparent hover:border-primary-container transition-all">
+              {/* Step 1 */}
+              <div className="bg-[#121212] p-10 flex flex-col items-center text-center group border-t-4 border-transparent hover:border-tertiary transition-all">
                 <div className="w-20 h-20 flex items-center justify-center bg-background mb-8 group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined text-5xl text-tertiary">person_add</span>
                 </div>
-                <span className="text-[10px] font-black text-primary-container tracking-[0.4em] mb-4">01. THE CALL</span>
+                <span className="text-[10px] font-black text-secondary tracking-[0.4em] mb-4 uppercase">01. THE CALL</span>
+                <h4 className="font-headline text-3xl font-black uppercase italic mb-4 text-white">RECRUIT</h4>
+                <p className="text-secondary text-sm leading-relaxed">Enter the registry. Build your profile and get scouted by the tournament leads.</p>
+              </div>
+              
+              {/* Step 2 */}
+              <div className="bg-[#121212] p-10 flex flex-col items-center text-center group border-t-4 border-transparent hover:border-tertiary transition-all">
+                <div className="w-20 h-20 flex items-center justify-center bg-background mb-8 group-hover:scale-110 transition-transform">
+                  <span className="material-symbols-outlined text-5xl text-tertiary">sports_football</span>
                 </div>
-                <span className="text-[10px] font-black text-primary-container tracking-[0.4em] mb-4">02. THE ARENA</span>
-                <h4 className="font-headline text-3xl font-black uppercase italic mb-4">COMPETE</h4>
+                <span className="text-[10px] font-black text-secondary tracking-[0.4em] mb-4 uppercase">02. THE ARENA</span>
+                <h4 className="font-headline text-3xl font-black uppercase italic mb-4 text-white">COMPETE</h4>
                 <p className="text-secondary text-sm leading-relaxed">High-stakes brackets. Every match broadcast live to the tournament platform.</p>
               </div>
-              <div className="bg-surface-container-high p-10 flex flex-col items-center text-center group border-t-4 border-transparent hover:border-primary-container transition-all">
+
+              {/* Step 3 */}
+              <div className="bg-[#121212] p-10 flex flex-col items-center text-center group border-t-4 border-transparent hover:border-tertiary transition-all">
                 <div className="w-20 h-20 flex items-center justify-center bg-background mb-8 group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined text-5xl text-tertiary">trophy</span>
                 </div>
-                <span className="text-[10px] font-black text-primary-container tracking-[0.4em] mb-4">03. THE THRONE</span>
-                <h4 className="font-headline text-3xl font-black uppercase italic mb-4">GLORY</h4>
+                <span className="text-[10px] font-black text-secondary tracking-[0.4em] mb-4 uppercase">03. THE THRONE</span>
+                <h4 className="font-headline text-3xl font-black uppercase italic mb-4 text-white">GLORY</h4>
                 <p className="text-secondary text-sm leading-relaxed">Win the championship title and prove your dominance on the college stage.</p>
               </div>
             </div>
