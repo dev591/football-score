@@ -11,6 +11,7 @@ export interface Player {
   name: string
   team_id: string
   position: string
+  is_captain?: boolean
   created_at: string
   team?: Team
 }
@@ -74,13 +75,6 @@ export interface Discipline {
   team: string
   yellow: number
   red: number
-}
-
-export interface TopScorer {
-  rank: number
-  player: string
-  team: string
-  goals: number
 }
 
 export interface StarPlayer {
