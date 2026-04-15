@@ -1,0 +1,9 @@
+{
+  "name": "striker-monorepo",
+  "private": true,
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "build": "echo 'No root build needed'",
+    "deploy-backend": "npm install --prefix backend && npm start --prefix backend"
+  }
+}
