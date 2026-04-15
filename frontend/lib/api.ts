@@ -3,6 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://football-score-
 export interface Team {
   id: string
   name: string
+  owner_name?: string
   created_at: string
 }
 
