@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: striker-frontend
+    env: static
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: out
+    # If using Next.js without static export:
+    # env: node
+    # buildCommand: "npm install && npm run build"
+    # startCommand: "npm run start"
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://football-score-production.up.railway.app/api
+    # This blueprint tells Render exactly where the frontend lives
+    rootDir: frontend

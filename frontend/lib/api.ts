@@ -84,6 +84,13 @@ export interface StarPlayer {
   star_count: number
 }
 
+export interface GlobalStats {
+  totalTeams: number
+  totalPlayers: number
+  totalMatches: number
+  prizePool: number
+}
+
 // API Functions
 export const api = {
   // Auth
@@ -263,6 +270,11 @@ export const api = {
 
   async getDiscipline(): Promise<Discipline[]> {
     const response = await fetch(`${API_BASE_URL}/stats/discipline`)
+    return response.json()
+  },
+
+  async getGlobalStats(): Promise<GlobalStats> {
+    const response = await fetch(`${API_BASE_URL}/stats/global`)
     return response.json()
   },
 

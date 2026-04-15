@@ -376,35 +376,88 @@ function WatchHubContent() {
           )}
 
           {activeTab === 'schedule' && (
-            <div className="space-y-8 max-w-4xl mx-auto">
-               <h3 className="font-headline font-black text-[10px] tracking-[0.4em] text-primary-container uppercase border-l-4 border-primary-container pl-4 mb-4">MATCH QUEUE</h3>
-               {fixtures.map(m => (
-                 <div key={m.id} className="bg-surface-container-high p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-12 relative overflow-hidden border border-white/5">
-                    <div className="flex-1 text-center md:text-left">
-                       <h4 className={`font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter ${m.status === 'live' ? 'text-primary-container' : 'text-white'}`}>{m.team_a?.name}</h4>
-                       <span className="text-[8px] font-bold text-secondary tracking-widest uppercase opacity-60">FRANCHISE PK4</span>
-                    </div>
-                    
-                    <div className="flex flex-col items-center px-8 border-y md:border-y-0 md:border-x border-white/10 py-4 md:py-0 min-w-[120px]">
-                       {m.status === 'live' ? (
-                          <div className="flex flex-col items-center">
-                             <div className="font-headline font-black text-4xl text-primary-container">{m.score_a} : {m.score_b}</div>
-                             <button onClick={() => handleTabChange('live')} className="text-[9px] font-black text-white bg-primary-container px-4 py-1.5 uppercase mt-3 tracking-widest">WATCH LIVE</button>
-                          </div>
-                       ) : (
-                          <div className="flex flex-col items-center">
-                             <span className="font-headline font-black text-xl text-white mb-1 uppercase tracking-tighter">{m.time}</span>
-                             <span className="text-[10px] font-bold text-secondary">{m.date ? format(new Date(m.date), 'MMM dd') : 'TBD'}</span>
-                          </div>
-                       )}
-                    </div>
-
-                    <div className="flex-1 text-center md:text-right">
-                       <h4 className={`font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter ${m.status === 'live' ? 'text-primary-container' : 'text-white'}`}>{m.team_b?.name}</h4>
-                       <span className="text-[8px] font-bold text-secondary tracking-widest uppercase opacity-60">FRANCHISE PK4</span>
-                    </div>
+            <div className="space-y-12 max-w-4xl mx-auto">
+               {/* Live Matches Column */}
+               {fixtures.filter(m => m.status === 'live').length > 0 && (
+                 <div className="space-y-4">
+                    <h3 className="font-headline font-black text-[10px] tracking-[0.4em] text-primary-container uppercase border-l-4 border-primary-container pl-4">LIVE NOW</h3>
+                    {fixtures.filter(m => m.status === 'live').map(m => (
+                      <div key={m.id} className="bg-surface-container-high p-5 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-12 relative overflow-hidden border border-primary-container/30 shadow-2xl animate-pulse-live">
+                        <div className="flex-1 text-center md:text-left">
+                          <h4 className="font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter text-white">{m.team_a?.name}</h4>
+                        </div>
+                        <div className="flex flex-col items-center px-8 text-center">
+                          <div className="font-headline font-black text-4xl text-primary-container">{m.score_a} : {m.score_b}</div>
+                          <button onClick={() => handleTabChange('live')} className="text-[9px] font-black text-white bg-primary-container px-4 py-1.5 uppercase mt-3 tracking-widest">SWITCH TO BROADCAST</button>
+                        </div>
+                        <div className="flex-1 text-center md:text-right">
+                          <h4 className="font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter text-white">{m.team_b?.name}</h4>
+                        </div>
+                      </div>
+                    ))}
                  </div>
-               ))}
+               )}
+
+               {/* Upcoming Matches */}
+               {fixtures.filter(m => m.status === 'scheduled').length > 0 && (
+                 <div className="space-y-4">
+                    <h3 className="font-headline font-black text-[10px] tracking-[0.4em] text-secondary uppercase border-l-4 border-white/10 pl-4">UPCOMING FIXTURES</h3>
+                    {fixtures.filter(m => m.status === 'scheduled').map(m => (
+                      <div key={m.id} className="bg-surface-container-low p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 border border-white/5 opacity-80 hover:opacity-100 transition-all">
+                        <div className="flex-1 text-center md:text-left">
+                          <h4 className="font-headline font-black text-lg text-white uppercase italic tracking-tighter">{m.team_a?.name}</h4>
+                        </div>
+                        <div className="flex flex-col items-center px-6 py-2 bg-black/40 border border-white/5">
+                          <span className="font-headline font-black text-lg text-white uppercase tracking-tighter">{m.time}</span>
+                          <span className="text-[8px] font-bold text-secondary">{m.date ? format(new Date(m.date), 'MMM dd') : 'TBD'}</span>
+                        </div>
+                        <div className="flex-1 text-center md:text-right">
+                          <h4 className="font-headline font-black text-lg text-white uppercase italic tracking-tighter">{m.team_b?.name}</h4>
+                        </div>
+                      </div>
+                    ))}
+                 </div>
+               )}
+
+               {/* Finished Matches (History) */}
+               <div className="space-y-4">
+                  <h3 className="font-headline font-black text-[10px] tracking-[0.4em] text-tertiary uppercase border-l-4 border-tertiary pl-4">MATCH HISTORY (RESULTS)</h3>
+                  {fixtures.filter(m => m.status === 'ft' || m.status === 'ht').length > 0 ? (
+                    fixtures.filter(m => m.status === 'ft' || m.status === 'ht').reverse().map(m => (
+                      <div key={m.id} className="bg-surface-container-highest p-5 md:p-8 flex flex-col border border-white/5 relative group hover:border-tertiary/30 transition-all">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                          <div className={`flex-1 text-center md:text-left ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary opacity-50'}`}>
+                            <h4 className="font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter flex items-center gap-3 justify-center md:justify-start">
+                              {m.team_a?.name}
+                              {m.score_a! > m.score_b! && <span className="material-symbols-outlined text-tertiary text-sm">trophy</span>}
+                            </h4>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <div className="font-headline font-black text-4xl text-white italic">{m.score_a} - {m.score_b}</div>
+                            <span className="text-[8px] font-black bg-white/5 px-2 py-0.5 mt-2 tracking-widest uppercase opacity-40">{m.status === 'ft' ? 'FINAL SCORE' : 'HALF TIME'}</span>
+                          </div>
+                          <div className={`flex-1 text-center md:text-right ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary opacity-50'}`}>
+                            <h4 className="font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter flex items-center gap-3 justify-center md:justify-end">
+                              {m.score_b! > m.score_a! && <span className="material-symbols-outlined text-tertiary text-sm">trophy</span>}
+                              {m.team_b?.name}
+                            </h4>
+                          </div>
+                        </div>
+                        {/* Goal Scorers Preview if available in API response */}
+                        <div className="mt-6 pt-6 border-t border-white/5 flex flex-wrap justify-center gap-x-8 gap-y-2">
+                           {/* We would need to fetch events for each match to show scorers here, 
+                               or if the backend included them. For now, we point to the watch page 
+                               or add a button to view timeline */}
+                           <Link href={`/watch?tab=live&matchId=${m.id}`} className="text-[9px] font-black text-secondary hover:text-white transition-colors uppercase tracking-[0.2em]">VIEW MATCH TIMELINE & STATISTICS</Link>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-12 border border-dashed border-white/5 text-center text-[10px] font-black uppercase tracking-widest opacity-20">
+                      NO HISTORY RECORDED IN THIS SEASON
+                    </div>
+                  )}
+               </div>
             </div>
           )}
 
