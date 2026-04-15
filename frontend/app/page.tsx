@@ -17,100 +17,86 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Three.js setup
+    // 1. Three.js setup
+    let cleanupThree: () => void = () => {};
     if (canvasRef.current && typeof window !== 'undefined') {
-      const THREE = require('three')
-      
-      const scene = new THREE.Scene()
-      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+      const THREE = require('three');
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer({ 
         canvas: canvasRef.current, 
         alpha: true,
-        antialias: true,
-        powerPreference: 'high-performance'
-      })
+        antialias: true
+      });
       
-      renderer.setSize(window.innerWidth, window.innerHeight)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)) // Cap pixel ratio for performance
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       
-      // Cinematic red geometry
-      const geometry = new THREE.IcosahedronGeometry(2, 1)
+      const geometry = new THREE.IcosahedronGeometry(2, 1);
       const material = new THREE.MeshBasicMaterial({
-        color: 0xE62127, // Primary Red
+        color: 0xE62127,
         wireframe: true,
         transparent: true,
-        opacity: window.innerWidth < 768 ? 0.05 : 0.1
-      })
+        opacity: 0.1
+      });
       
-      const mesh = new THREE.Mesh(geometry, material)
-      mesh.position.x = 1.5
-      scene.add(mesh)
-      
-      camera.position.z = 5
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.x = 1.5;
+      scene.add(mesh);
+      camera.position.z = 5;
       
       const handleResize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight
-        camera.updateProjectionMatrix()
-        renderer.setSize(window.innerWidth, window.innerHeight)
-      }
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
       
-      window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize);
       
-      window.addEventListener('resize', handleResize)
-      
-      let isVisible = true
+      let isVisible = true;
       const observer = new IntersectionObserver(([entry]) => {
-        isVisible = entry.isIntersecting
-      }, { threshold: 0.1 })
-      
-      observer.observe(canvasRef.current)
+        isVisible = entry.isIntersecting;
+      }, { threshold: 0.1 });
+      observer.observe(canvasRef.current);
       
       const tickerListener = () => {
-        if (!isVisible) return
-        mesh.rotation.x += 0.001
-        mesh.rotation.y += 0.002
-        renderer.render(scene, camera)
-      }
+        if (!isVisible) return;
+        mesh.rotation.x += 0.001;
+        mesh.rotation.y += 0.002;
+        renderer.render(scene, camera);
+      };
+      gsap.ticker.add(tickerListener);
       
-      gsap.ticker.add(tickerListener)
-      
-      return () => {
-        window.removeEventListener('resize', handleResize)
-        observer.disconnect()
-        gsap.ticker.remove(tickerListener)
-        geometry.dispose()
-        material.dispose()
-        renderer.dispose()
-      }
+      cleanupThree = () => {
+        window.removeEventListener('resize', handleResize);
+        observer.disconnect();
+        gsap.ticker.remove(tickerListener);
+        geometry.dispose();
+        material.dispose();
+        renderer.dispose();
+      };
     }
-  }, [])
 
-  useEffect(() => {
-    // Fetch real matches for the schedule
+    // 2. Data Fetching
     Promise.all([
       api.getMatches(),
       api.getTopScorers()
     ]).then(([matchesData, scorersData]) => {
-      setMatches(matchesData)
-      setTopScorers(scorersData.slice(0, 3)) // Get top 3
-      setLoading(false)
-      // Refresh ScrollTrigger as content size might have changed
-      setTimeout(() => {
-        ScrollTrigger.refresh()
-      }, 100)
-    }).catch(() => setLoading(false))
+      setMatches(matchesData);
+      setTopScorers(scorersData.slice(0, 3));
+      setLoading(false);
+      setTimeout(() => ScrollTrigger.refresh(), 100);
+    }).catch(() => setLoading(false));
 
-    // GSAP animations
+    // 3. GSAP Animations
     if (typeof window !== 'undefined') {
-      // Hero content stagger
       gsap.timeline()
         .from(".hero-title", { opacity: 0, scale: 0.9, duration: 1.5, ease: "power4.out" }, 0.1)
         .from(".hero-sub", { opacity: 0, y: 30, duration: 1, ease: "power4.out" }, 0.5)
-        .from(".hero-btns", { opacity: 0, y: 30, duration: 1, ease: "power4.out" }, 0.7)
+        .from(".hero-btns", { opacity: 0, y: 30, duration: 1, ease: "power4.out" }, 0.7);
       
-      // Stats counting
       gsap.utils.toArray(".stat-count").forEach((stat: any) => {
-        const target = parseInt(stat.dataset.target || '0')
+        const target = parseInt(stat.dataset.target || '0');
         ScrollTrigger.create({
           trigger: "#stats",
           start: "top 80%",
@@ -120,19 +106,22 @@ export default function LandingPage() {
               duration: 2,
               ease: "power2.out",
               snap: { innerText: 1 },
-              onUpdate: function() {
-                // @ts-ignore
-                stat.innerText = Math.floor(this.targets()[0].innerText).toLocaleString()
+              onUpdate: function(this: any) {
+                stat.innerText = Math.floor(this.targets()[0].innerText).toLocaleString();
               }
             });
           }
         });
       });
     }
+
+    return () => {
+      cleanupThree();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
   }, []);
 
   return (
-    <>
     <div className="bg-background selection:bg-primary-container selection:text-white overflow-x-hidden">
       {/* TopAppBar */}
       <header className="fixed top-0 w-full z-50 border-t-2 border-[#c7c6c6]/30 bg-[#1c1b1b]/80 backdrop-blur-md flex justify-between items-center px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
@@ -431,7 +420,6 @@ export default function LandingPage() {
         </Link>
       </nav>
     </div>
-    </>
   )
 }
 
