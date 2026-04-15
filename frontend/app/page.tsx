@@ -124,14 +124,15 @@ export default function LandingPage() {
                 // @ts-ignore
                 stat.innerText = Math.floor(this.targets()[0].innerText).toLocaleString()
               }
-            })
+            });
           }
-        })
-      })
+        });
+      });
     }
-  }, [])
+  }, []);
 
   return (
+    <>
     <div className="bg-background selection:bg-primary-container selection:text-white overflow-x-hidden">
       {/* TopAppBar */}
       <header className="fixed top-0 w-full z-50 border-t-2 border-[#c7c6c6]/30 bg-[#1c1b1b]/80 backdrop-blur-md flex justify-between items-center px-6 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
@@ -419,6 +420,7 @@ export default function LandingPage() {
         </Link>
       </nav>
     </div>
+    </>
   )
 }
 
