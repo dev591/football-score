@@ -252,29 +252,29 @@ export const api = {
     return response.json()
   },
 
-  // Stats
+  // Stats (backend mounts at /api/standings)
   async getStandings(): Promise<Standing[]> {
-    const response = await fetch(`${API_BASE_URL}/stats/standings`)
+    const response = await fetch(`${API_BASE_URL}/standings`)
     return response.json()
   },
 
   async getTopScorers(): Promise<TopScorer[]> {
-    const response = await fetch(`${API_BASE_URL}/stats/top-scorers`)
+    const response = await fetch(`${API_BASE_URL}/standings/top-scorers`)
     return response.json()
   },
 
   async getStarPlayers(): Promise<StarPlayer[]> {
-    const response = await fetch(`${API_BASE_URL}/stats/star-players`)
+    const response = await fetch(`${API_BASE_URL}/standings/star-players`)
     return response.json()
   },
 
   async getDiscipline(): Promise<Discipline[]> {
-    const response = await fetch(`${API_BASE_URL}/stats/discipline`)
+    const response = await fetch(`${API_BASE_URL}/standings/discipline`)
     return response.json()
   },
 
   async getGlobalStats(): Promise<GlobalStats> {
-    const response = await fetch(`${API_BASE_URL}/stats/global`)
+    const response = await fetch(`${API_BASE_URL}/standings/global`)
     return response.json()
   },
 
