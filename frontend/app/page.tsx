@@ -60,6 +60,8 @@ const HeroSection = ({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasEleme
 );
 
 // --- Stats Section ---
+const StatsSection = ({ stats }: { stats: { totalTeams: number; totalPlayers: number } }) => (
+  <section id="stats" className="py-24 px-6">
     <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-outline-variant/10 max-w-4xl mx-auto">
       <div className="flex flex-col items-center py-10">
         <span className="stat-count font-headline text-5xl font-black text-white italic" data-target={stats.totalTeams}>{stats.totalTeams}</span>
@@ -70,6 +72,8 @@ const HeroSection = ({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasEleme
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mt-2">TOTAL PLAYERS</span>
       </div>
     </div>
+  </section>
+);
 
 // --- Matches Section ---
 const MatchesSection = ({ matches, loading }: { matches: Match[], loading: boolean }) => (
