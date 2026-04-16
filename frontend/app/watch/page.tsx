@@ -587,7 +587,8 @@ function WatchHubContent() {
                   <p className="text-[9px] md:text-[11px] font-bold text-secondary uppercase tracking-[0.4em] opacity-60">TACTICAL OVERVIEW & PERFORMANCE MATRIX</p>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ga                   {allTeams.length > 0 ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                   {allTeams.length > 0 ? (
                     allTeams.map((team, i) => {
                       const stats = standings.find(s => s.team === team.name) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0 };
                       return (
@@ -627,7 +628,6 @@ function WatchHubContent() {
                       )
                     })
                   ) : (
-) : (
                     <div className="col-span-full py-40 text-center opacity-20 border border-dashed border-white/10">
                        <span className="text-[10px] font-black uppercase tracking-[0.5em]">FRANCHISE DATA CONSOLIDATION IN PROGRESS</span>
                     </div>
