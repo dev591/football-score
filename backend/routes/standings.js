@@ -4,11 +4,11 @@ const supabase = require('../lib/supabase')
 
 router.get('/', async (req, res) => {
   try {
-    // Get all finished matches
+    // Get all matches that have results (either FT or scheduled with scores)
     const { data: matches, error: matchesError } = await supabase
       .from('matches')
       .select('*')
-      .eq('status', 'ft')
+      .or('status.eq.ft,and(status.eq.scheduled,score_a.not.is.null,score_b.not.is.null)')
     
     if (matchesError) throw matchesError
     
