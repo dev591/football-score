@@ -11,10 +11,9 @@ export interface Player {
   id: string
   name: string
   team_id: string
-  position: string
-  is_captain?: boolean
-  created_at: string
-  team?: Team
+  is_captain: boolean
+  position?: string
+  team?: { name: string }
 }
 
 export interface Match {
@@ -24,18 +23,18 @@ export interface Match {
   date: string
   time: string
   status: 'scheduled' | 'live' | 'ft' | 'ht'
-  bracket_type?: 'group' | 'qf' | 'sf' | 'final'
+  bracket_type?: 'group' | 'qf' | 'sf' | 'final' | 'eliminator'
   score_a?: number
   score_b?: number
   event_count?: number
-  started_at?: string
   stoppage_time?: number
+  started_at?: string
+  team_a?: { name: string; owner_name: string }
+  team_b?: { name: string; owner_name: string }
   star_player_id?: string
   star_player_note?: string
   result_override?: 'team_a' | 'team_b' | 'draw'
   events?: MatchEvent[]
-  team_a?: Team
-  team_b?: Team
 }
 
 export interface MatchEvent {
@@ -66,7 +65,7 @@ export interface Standing {
 }
 
 export interface TopScorer {
-  rank: number
+  rank?: number
   player: string
   team: string
   goals: number
@@ -81,7 +80,7 @@ export interface Discipline {
 
 export interface StarPlayer {
   player_name: string
-  team_name: string
+  team_name?: string
   star_count: number
 }
 

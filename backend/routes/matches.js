@@ -11,8 +11,8 @@ router.get('/', async (req, res) => {
       .from('matches')
       .select(`
         *,
-        team_a:teams!matches_team_a_id_fkey(name),
-        team_b:teams!matches_team_b_id_fkey(name),
+        team_a:teams!matches_team_a_id_fkey(name, owner_name),
+        team_b:teams!matches_team_b_id_fkey(name, owner_name),
         match_events(count)
       `)
       .order('date')
