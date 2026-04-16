@@ -212,7 +212,25 @@ export default function LiveScoreTab() {
                      </div>
                      <div className="bg-black/80 px-8 py-3 border border-white/10 flex flex-col items-center">
                         <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em] mb-1">CHRONO</span>
-                        <span className="font-headline font-black text-3xl text-tertiary italic">{currentMinute}'</span>
+                        <div className="flex items-center gap-2">
+                           <span className="font-headline font-black text-3xl text-tertiary italic">{currentMinute}'</span>
+                           {selectedMatch.status === 'live' && (
+                              <div className="flex items-center gap-1 ml-4 border-l border-white/10 pl-4">
+                                 <span className="text-[14px] font-black text-primary-container">+</span>
+                                 <input 
+                                   type="number" 
+                                   value={selectedMatch.stoppage_time || 0}
+                                   onChange={async (e) => {
+                                     const val = parseInt(e.target.value) || 0
+                                     const updated = await api.updateMatch(selectedMatch.id, { stoppage_time: val })
+                                     setSelectedMatch(updated)
+                                   }}
+                                   className="w-12 bg-transparent text-white font-headline font-black text-xl focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                   placeholder="0"
+                                 />
+                              </div>
+                           )}
+                        </div>
                      </div>
                   </div>
                   <div className="flex gap-4 relative z-10">

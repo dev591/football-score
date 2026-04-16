@@ -29,6 +29,7 @@ export interface Match {
   score_b?: number
   event_count?: number
   started_at?: string
+  stoppage_time?: number
   star_player_id?: string
   star_player_note?: string
   result_override?: 'team_a' | 'team_b' | 'draw'

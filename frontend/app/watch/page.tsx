@@ -10,9 +10,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 function WatchHubContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const tabParam = searchParams.get('tab') as 'live' | 'schedule' | 'leaderboard' | 'brackets' | null
+  const tabParam = searchParams.get('tab') as 'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise' | null
   
-  const [activeTab, setActiveTab] = useState<'live' | 'schedule' | 'leaderboard' | 'brackets'>(tabParam || 'live')
+  const [activeTab, setActiveTab] = useState<'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise'>(tabParam || 'live')
   const [mobileLiveMode, setMobileLiveMode] = useState<'timeline' | 'lineups'>('timeline')
   const [liveMatch, setLiveMatch] = useState<Match | null>(null)
   const [liveEvents, setLiveEvents] = useState<MatchEvent[]>([])
@@ -35,7 +35,7 @@ function WatchHubContent() {
     }
   }, [tabParam, activeTab])
 
-  const handleTabChange = (tab: 'live' | 'schedule' | 'leaderboard' | 'brackets') => {
+  const handleTabChange = (tab: 'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise') => {
     setActiveTab(tab)
     router.push(`/watch?tab=${tab}`, { scroll: false })
   }
@@ -200,7 +200,11 @@ function WatchHubContent() {
                            <span className="font-headline font-black text-4xl md:text-[10rem] italic text-white leading-none tracking-tighter">{liveMatch.score_b ?? 0}</span>
                         </div>
                         <div className="bg-primary-container px-3 md:px-8 py-1 md:py-2 shadow-xl transform skew-x-[-20deg]">
-                           <span className="font-headline font-black text-xs md:text-3xl text-white tracking-widest block transform skew-x-[20deg] leading-none">{elapsedMinutes}'</span>
+                           <span className="font-headline font-black text-xs md:text-3xl text-white tracking-widest block transform skew-x-[20deg] leading-none">
+                             {elapsedMinutes}
+                             {liveMatch.stoppage_time! > 0 && <span className="text-[0.6em] opacity-80 ml-1">+ {liveMatch.stoppage_time}</span>}
+                             '
+                           </span>
                         </div>
                       </div>
 
@@ -224,11 +228,11 @@ function WatchHubContent() {
 
         {/* 3. STICKY TAB NAVIGATION */}
         <nav className="sticky top-[72px] md:top-[96px] z-40 bg-surface-container-high/95 backdrop-blur-2xl flex w-full border border-white/5 mb-6 md:mb-8 rounded-sm shadow-2xl">
-          {['live', 'schedule', 'leaderboard', 'brackets'].map((tab) => (
+          {['live', 'schedule', 'leaderboard', 'franchise', 'brackets'].map((tab) => (
             <button 
               key={tab}
               onClick={() => handleTabChange(tab as any)} 
-              className={`flex-1 py-4 md:py-5 font-headline text-[9px] md:text-[11px] font-black tracking-[0.3em] transition-all border-b-4 ${
+              className={`flex-1 py-4 md:py-5 font-headline text-[7px] md:text-[11px] font-black tracking-[0.2em] md:tracking-[0.3em] transition-all border-b-4 ${
                 activeTab === tab ? 'border-primary-container text-white bg-white/5' : 'border-transparent text-secondary hover:text-white'
               }`}
             >
@@ -462,8 +466,58 @@ function WatchHubContent() {
           )}
 
           {activeTab === 'leaderboard' && (
-            <div className="space-y-8">
-                <div className="mt-12 space-y-8">
+            <div className="space-y-16">
+                {/* Team Standings Section */}
+                <div className="space-y-6">
+                   <div className="flex items-center gap-4 mb-6">
+                      <div className="h-0.5 flex-1 bg-white/5"></div>
+                      <h3 className="font-headline font-black text-xs tracking-[0.4em] text-primary-container uppercase">LEAGUE STANDINGS</h3>
+                      <div className="h-0.5 flex-1 bg-white/5"></div>
+                   </div>
+
+                   <div className="overflow-x-auto bg-surface-container-high border border-white/5 shadow-2xl">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-black/60 border-b border-white/10">
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase">POS</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-left">FRANCHISE</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">P</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">W</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">D</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">L</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">GD</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-primary-container uppercase text-center">PTS</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {standings.length > 0 ? standings.map((s, i) => (
+                            <tr key={s.team} className="hover:bg-white/[0.02] transition-colors group">
+                              <td className="p-4 md:p-6 font-headline font-black text-sm md:text-xl italic text-white/20">{i + 1}</td>
+                              <td className="p-4 md:p-6">
+                                <div className="flex flex-col">
+                                  <span className="font-headline font-black text-xs md:text-lg uppercase text-white group-hover:text-primary-container transition-colors tracking-tight">{s.team}</span>
+                                  <span className="text-[7px] md:text-[9px] font-black text-secondary/40 uppercase tracking-widest">{s.owner}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm">{s.played}</td>
+                              <td className="p-4 md:p-6 text-center font-bold text-white text-xs md:text-sm">{s.won}</td>
+                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm hidden md:table-cell">{s.drawn}</td>
+                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm">{s.lost}</td>
+                              <td className="p-4 md:p-6 text-center font-bold text-tertiary text-xs md:text-sm hidden md:table-cell">{s.goal_difference > 0 ? `+${s.goal_difference}` : s.goal_difference}</td>
+                              <td className="p-4 md:p-6 text-center font-headline font-black text-lg md:text-2xl italic text-primary-container">{s.points}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan={8} className="p-20 text-center text-[10px] font-black uppercase tracking-[0.4em] opacity-20">Awaiting Final Results</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                   </div>
+                </div>
+
+                {/* Scorer Standings Section */}
+                <div className="space-y-6">
                    <div className="flex items-center gap-4 mb-6">
                       <div className="h-0.5 flex-1 bg-white/5"></div>
                       <h3 className="font-headline font-black text-xs tracking-[0.4em] text-tertiary uppercase">POINTS LEADERS (GOLDEN BOOT)</h3>
@@ -486,9 +540,67 @@ function WatchHubContent() {
                            </div>
                         </div>
                       ))}
+                      {topScorers.length === 0 && (
+                        <div className="col-span-full py-12 text-center text-[10px] font-black uppercase tracking-widest opacity-20">NO SCORER DATA ACQUIRED</div>
+                      )}
                    </div>
                 </div>
              </div>
+          )}
+
+          {activeTab === 'franchise' && (
+            <div className="space-y-12">
+               <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4">
+                  <h3 className="font-headline font-black text-4xl md:text-6xl uppercase italic text-white tracking-tighter leading-none">FRANCHISE <span className="text-primary-container">HUB</span></h3>
+                  <p className="text-[9px] md:text-[11px] font-bold text-secondary uppercase tracking-[0.4em] opacity-60">TACTICAL OVERVIEW & PERFORMANCE MATRIX</p>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {standings.length > 0 ? (
+                    // In a real scenario, you'd want a separate "All Teams" fetch if standings only lists active teams
+                    // but since standings is derived from all teams in our backend, it works.
+                    standings.map((team, i) => (
+                      <div key={team.team} className="bg-surface-container-high p-8 border border-white/5 relative overflow-hidden group hover:border-primary-container/30 transition-all">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-full translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform"></div>
+                        
+                        <div className="relative z-10 space-y-8">
+                           <div>
+                              <span className="text-[8px] font-black text-primary-container tracking-[0.4em] uppercase mb-2 block">FRANCHISE UNIT #{String(i+1).padStart(2, '0')}</span>
+                              <h4 className="font-headline font-black text-2xl md:text-3xl uppercase italic text-white leading-tight tracking-tight">{team.team}</h4>
+                              <span className="text-[10px] font-bold text-secondary uppercase tracking-widest opacity-60">MANAGER: {team.owner || 'N/A'}</span>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-black/60 p-4 border border-white/5">
+                                 <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL WINS</span>
+                                 <span className="font-headline font-black text-4xl text-white italic">{team.won}</span>
+                              </div>
+                              <div className="bg-black/60 p-4 border border-white/5">
+                                 <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL LOSSES</span>
+                                 <span className="font-headline font-black text-4xl text-error italic">{team.lost}</span>
+                              </div>
+                           </div>
+
+                           <div className="pt-6 border-t border-white/5 flex justify-between items-center">
+                              <div className="flex flex-col">
+                                 <span className="font-headline font-black text-sm text-tertiary italic">{((team.won / (team.played || 1)) * 100).toFixed(0)}%</span>
+                                 <span className="text-[7px] font-black text-secondary uppercase tracking-widest">WIN RATE</span>
+                              </div>
+                              <div className="flex flex-col items-end">
+                                 <span className="font-headline font-black text-sm text-white italic">{team.played}</span>
+                                 <span className="text-[7px] font-black text-secondary uppercase tracking-widest">MATCHES</span>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full py-40 text-center opacity-20 border border-dashed border-white/10">
+                       <span className="text-[10px] font-black uppercase tracking-[0.5em]">FRANCHISE DATA CONSOLIDATION IN PROGRESS</span>
+                    </div>
+                  )}
+               </div>
+            </div>
           )}
 
           {activeTab === 'brackets' && (
