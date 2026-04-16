@@ -60,9 +60,7 @@ const HeroSection = ({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasEleme
 );
 
 // --- Stats Section ---
-const StatsSection = ({ stats }: { stats: any }) => (
-  <section id="stats" className="bg-surface-container-low border-y border-outline-variant/10">
-    <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-outline-variant/10">
+    <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-outline-variant/10 max-w-4xl mx-auto">
       <div className="flex flex-col items-center py-10">
         <span className="stat-count font-headline text-5xl font-black text-white italic" data-target={stats.totalTeams}>{stats.totalTeams}</span>
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mt-2">TOTAL TEAMS</span>
@@ -71,13 +69,7 @@ const StatsSection = ({ stats }: { stats: any }) => (
         <span className="stat-count font-headline text-5xl font-black text-tertiary italic" data-target={stats.totalPlayers}>{stats.totalPlayers}</span>
         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mt-2">TOTAL PLAYERS</span>
       </div>
-      <div className="flex flex-col items-center py-10">
-        <span className="stat-count font-headline text-5xl font-black text-white italic" data-target={stats.prizePool}>{stats.prizePool}</span>
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary mt-2">PRIZE POOL</span>
-      </div>
     </div>
-  </section>
-);
 
 // --- Matches Section ---
 const MatchesSection = ({ matches, loading }: { matches: Match[], loading: boolean }) => (
@@ -181,47 +173,6 @@ const LeadersSection = ({ topScorers }: { topScorers: any[] }) => (
   </section>
 );
 
-// --- Prize Pool Section ---
-const PrizePoolSection = ({ prizePool }: { prizePool: number }) => (
-  <section className="py-24 relative overflow-hidden bg-gradient-to-b from-surface-container-low to-background">
-    <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-primary-container/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-    <div className="max-w-7xl mx-auto px-6 relative z-10">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        <div className="lg:col-span-5 space-y-8 text-center md:text-left">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-tertiary/10 border border-tertiary/20 rounded-full mx-auto md:mx-0">
-            <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-            <span className="text-[10px] font-black tracking-[0.3em] text-tertiary uppercase">CHAMPIONSHIP STAKES</span>
-          </div>
-          <h2 className="font-headline text-6xl md:text-8xl font-black uppercase italic leading-[0.85] tracking-tighter text-white">
-            ELEVATE YOUR <br />
-            <span className="text-primary-container">LEGACY.</span>
-          </h2>
-          <p className="text-secondary uppercase text-[10px] tracking-[0.2em] font-bold max-w-md leading-loose mx-auto md:mx-0">
-            The highest collegiate prize pool in the circuit. Compete for more than just glory—dominate for the throne.
-          </p>
-        </div>
-        <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#121212] p-10 inner-stroke-top border-t-8 border-tertiary shadow-2xl group hover:-translate-y-2 transition-transform">
-            <span className="text-[10px] font-black text-secondary tracking-[0.4em] uppercase mb-4 block">1ST PLACE / CHAMPION</span>
-            <div className="flex items-baseline gap-2 mb-6">
-              <span className="font-headline text-5xl font-black text-white italic">₹</span>
-              <span className="font-headline text-7xl font-black text-tertiary italic">{(prizePool * 0.5 / 100000).toFixed(1)}L+</span>
-            </div>
-            <Link href="/watch" className="text-[10px] font-black text-white px-6 py-3 border border-white/10 group-hover:bg-tertiary group-hover:text-black transition-all inline-block">CLAIM THE THRONE</Link>
-          </div>
-          <div className="bg-[#121212] p-10 border border-white/5 shadow-2xl group hover:-translate-y-2 transition-transform">
-            <span className="text-[10px] font-black text-secondary tracking-[0.4em] uppercase mb-4 block">2ND PLACE / RUNNER UP</span>
-            <div className="flex items-baseline gap-2 mb-6">
-              <span className="font-headline text-3xl font-black text-white italic">₹</span>
-              <span className="font-headline text-5xl font-black text-white italic">{(prizePool * 0.25 / 100000).toFixed(1)}L+</span>
-            </div>
-            <span className="text-[9px] font-black text-secondary/40 uppercase tracking-widest">RUNNER UP BONUS INCLUDED</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-);
 
 // --- Roadmap Section ---
 const RoadmapSection = () => (
@@ -292,7 +243,7 @@ export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [matches, setMatches] = useState<Match[]>([])
   const [topScorers, setTopScorers] = useState<any[]>([])
-  const [stats, setStats] = useState({ totalTeams: 0, totalPlayers: 0, prizePool: 500000 })
+  const [stats, setStats] = useState({ totalTeams: 0, totalPlayers: 0 })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -341,8 +292,7 @@ export default function LandingPage() {
         setTopScorers(scorersData.slice(0, 3));
         setStats({
           totalTeams: globalStats.totalTeams,
-          totalPlayers: globalStats.totalPlayers,
-          prizePool: globalStats.prizePool
+          totalPlayers: globalStats.totalPlayers
         });
         setLoading(false);
         setTimeout(() => ScrollTrigger.refresh(), 100);
@@ -382,7 +332,6 @@ export default function LandingPage() {
         <HeroSection canvasRef={canvasRef} />
         <StatsSection stats={stats} />
         <MatchesSection matches={matches} loading={loading} />
-        <PrizePoolSection prizePool={stats.prizePool} />
         <LeadersSection topScorers={topScorers} />
         <RoadmapSection />
       </main>

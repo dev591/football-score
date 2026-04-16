@@ -89,7 +89,6 @@ export interface GlobalStats {
   totalTeams: number
   totalPlayers: number
   totalMatches: number
-  prizePool: number
 }
 
 // API Functions
