@@ -19,11 +19,9 @@ function WatchHubContent() {
   const [teamAPlayers, setTeamAPlayers] = useState<Player[]>([])
   const [teamBPlayers, setTeamBPlayers] = useState<Player[]>([])
   const [lineup, setLineup] = useState<any[]>([])
-  const [fixtures, setFixtures] = useState<Match[]>([])
   const [standings, setStandings] = useState<Standing[]>([])
-  const [topScorers, setTopScorers] = useState<TopScorer[]>([])
-  const [discipline, setDiscipline] = useState<Discipline[]>([])
-  const [starPlayers, setStarPlayers] = useState<StarPlayer[]>([])
+  const [allTeams, setAllTeams] = useState<any[]>([])
+  const [fixtures, setFixtures] = useState<Match[]>([])
   const [selectedTeamForSquad, setSelectedTeamForSquad] = useState<string | null>(null)
   const [squadPlayers, setSquadPlayers] = useState<Player[]>([])
   const [squadLoading, setSquadLoading] = useState(false)
@@ -47,12 +45,13 @@ function WatchHubContent() {
     if (isManual) setLoading(true)
     try {
       // Fetch core data with individual error handling to prevent total blackout
-      const [matches, standingData, scorerData, discData, starData] = await Promise.all([
+      const [matches, standingData, scorerData, discData, starData, teamsData] = await Promise.all([
         api.getMatches().catch(() => []),
         api.getStandings().catch(() => []),
         api.getTopScorers().catch(() => []),
         api.getDiscipline().catch(() => []),
-        api.getStarPlayers().catch(() => [])
+        api.getStarPlayers().catch(() => []),
+        api.getTeams().catch(() => [])
       ])
       
       setFixtures(matches)
@@ -60,6 +59,7 @@ function WatchHubContent() {
       setTopScorers(scorerData.slice(0, 10))
       setDiscipline(discData.slice(0, 10))
       setStarPlayers(starData.slice(0, 10))
+      setAllTeams(teamsData)
       
       // Select live match - prioritize 'live' status
       const live = matches.find(m => m.status === 'live')
@@ -587,49 +587,47 @@ function WatchHubContent() {
                   <p className="text-[9px] md:text-[11px] font-bold text-secondary uppercase tracking-[0.4em] opacity-60">TACTICAL OVERVIEW & PERFORMANCE MATRIX</p>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {standings.length > 0 ? (
-                    // In a real scenario, you'd want a separate "All Teams" fetch if standings only lists active teams
-                    // but since standings is derived from all teams in our backend, it works.
-                    standings.map((team, i) => (
-                      <div key={team.team} onClick={() => {
-                        const t = fixtures.find(f => f.team_a?.name === team.team)?.team_a_id || fixtures.find(f => f.team_b?.name === team.team)?.team_b_id;
-                        if (t) handleOpenSquad(t);
-                      }} className="bg-surface-container-high p-8 border border-white/5 relative overflow-hidden group hover:border-primary-container/30 cursor-pointer transition-all">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-full translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform"></div>
-                        
-                        <div className="relative z-10 space-y-8">
-                           <div>
-                              <span className="text-[8px] font-black text-primary-container tracking-[0.4em] uppercase mb-2 block">FRANCHISE UNIT #{String(i+1).padStart(2, '0')}</span>
-                              <h4 className="font-headline font-black text-2xl md:text-3xl uppercase italic text-white leading-tight tracking-tight">{team.team}</h4>
-                              <span className="text-[10px] font-bold text-secondary uppercase tracking-widest opacity-60">MANAGER: {team.owner || 'N/A'}</span>
-                           </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ga                   {allTeams.length > 0 ? (
+                    allTeams.map((team, i) => {
+                      const stats = standings.find(s => s.team === team.name) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0 };
+                      return (
+                        <div key={team.id} onClick={() => handleOpenSquad(team.id)} className="bg-surface-container-high p-8 border border-white/5 relative overflow-hidden group hover:border-primary-container/30 cursor-pointer transition-all">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-full translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform"></div>
+                          
+                          <div className="relative z-10 space-y-8">
+                             <div>
+                                <span className="text-[8px] font-black text-primary-container tracking-[0.4em] uppercase mb-2 block">FRANCHISE UNIT #{String(i+1).padStart(2, '0')}</span>
+                                <h4 className="font-headline font-black text-2xl md:text-3xl uppercase italic text-white leading-tight tracking-tight">{team.name}</h4>
+                                <span className="text-[10px] font-bold text-secondary uppercase tracking-widest opacity-60">MANAGER: {team.owner_name || 'N/A'}</span>
+                             </div>
 
-                           <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-black/60 p-4 border border-white/5">
-                                 <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL WINS</span>
-                                 <span className="font-headline font-black text-4xl text-white italic">{team.won}</span>
-                              </div>
-                              <div className="bg-black/60 p-4 border border-white/5">
-                                 <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL LOSSES</span>
-                                 <span className="font-headline font-black text-4xl text-error italic">{team.lost}</span>
-                              </div>
-                           </div>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-black/60 p-4 border border-white/5">
+                                   <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL WINS</span>
+                                   <span className="font-headline font-black text-4xl text-white italic">{stats.won}</span>
+                                </div>
+                                <div className="bg-black/60 p-4 border border-white/5">
+                                   <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL LOSSES</span>
+                                   <span className="font-headline font-black text-4xl text-error italic">{stats.lost}</span>
+                                </div>
+                             </div>
 
-                           <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                              <div className="flex flex-col">
-                                 <span className="font-headline font-black text-sm text-tertiary italic">{((team.won / (team.played || 1)) * 100).toFixed(0)}%</span>
-                                 <span className="text-[7px] font-black text-secondary uppercase tracking-widest">WIN RATE</span>
-                              </div>
-                              <div className="flex flex-col items-end">
-                                 <span className="font-headline font-black text-sm text-white italic">{team.played}</span>
-                                 <span className="text-[7px] font-black text-secondary uppercase tracking-widest">MATCHES</span>
-                              </div>
-                           </div>
+                             <div className="pt-6 border-t border-white/5 flex justify-between items-center">
+                                <div className="flex flex-col">
+                                   <span className="font-headline font-black text-sm text-tertiary italic">{((stats.won / (stats.played || 1)) * 100).toFixed(0)}%</span>
+                                   <span className="text-[7px] font-black text-secondary uppercase tracking-widest">WIN RATE</span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                   <span className="font-headline font-black text-sm text-white italic">{stats.played}</span>
+                                   <span className="text-[7px] font-black text-secondary uppercase tracking-widest">MATCHES</span>
+                                </div>
+                             </div>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   ) : (
+) : (
                     <div className="col-span-full py-40 text-center opacity-20 border border-dashed border-white/10">
                        <span className="text-[10px] font-black uppercase tracking-[0.5em]">FRANCHISE DATA CONSOLIDATION IN PROGRESS</span>
                     </div>

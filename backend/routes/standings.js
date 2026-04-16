@@ -4,13 +4,17 @@ const supabase = require('../lib/supabase')
 
 router.get('/', async (req, res) => {
   try {
-    // Get all matches that have results (either FT or scheduled with scores)
+    // Get all matches (we will filter for those with scores in JS)
     const { data: matches, error: matchesError } = await supabase
       .from('matches')
       .select('*')
-      .or('status.eq.ft,and(status.eq.scheduled,score_a.not.is.null,score_b.not.is.null)')
     
     if (matchesError) throw matchesError
+
+    // Filter for matches that have a result (either marked FT or have scores)
+    const processedMatches = matches.filter(m => 
+      m.status === 'ft' || (m.score_a !== null && m.score_b !== null)
+    )
     
     // Get all teams
     const { data: teams, error: teamsError } = await supabase
@@ -37,7 +41,7 @@ router.get('/', async (req, res) => {
     })
     
     // Process each match
-    matches.forEach(match => {
+    processedMatches.forEach(match => {
       const homeTeam = standingsMap[match.team_a_id]
       const awayTeam = standingsMap[match.team_b_id]
       
