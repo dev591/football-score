@@ -144,6 +144,8 @@ export default function LiveScoreTab() {
       const result = await api.createMatchEvent(selectedMatch.id, eventData)
       if (eventType === 'goal') {
         setSelectedMatch({ ...selectedMatch, score_a: result.scores?.score_a, score_b: result.scores?.score_b })
+        // Refresh sidebar list to prevent stale data overwrites
+        loadBaseData()
       }
       // Refresh events for timers
       const updatedEvents = await api.getMatchEvents(selectedMatch.id)
@@ -167,6 +169,8 @@ export default function LiveScoreTab() {
       
       const updatedEvents = await api.getMatchEvents(selectedMatch.id)
       setMatchEvents(updatedEvents)
+      // Refresh sidebar list
+      loadBaseData()
     } catch (err) {
       alert('Failed to undo event or no events found to undo.')
     }
