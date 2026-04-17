@@ -60,6 +60,9 @@ function WatchHubContent() {
       
       setFixtures(matches)
       setStandings(standingData)
+      setTopScorers(scorerData.slice(0, 10))
+      setDiscipline(discData.slice(0, 10))
+      setStarPlayers(starData.slice(0, 10))
       
       // Resilient Team Data: Use api.getTeams() but fallback to teams found in standings if empty
       let finalTeams = teamsData
