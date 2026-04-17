@@ -60,10 +60,17 @@ function WatchHubContent() {
       
       setFixtures(matches)
       setStandings(standingData)
-      setTopScorers(scorerData.slice(0, 10))
-      setDiscipline(discData.slice(0, 10))
-      setStarPlayers(starData.slice(0, 10))
-      setAllTeams(teamsData)
+      
+      // Resilient Team Data: Use api.getTeams() but fallback to teams found in standings if empty
+      let finalTeams = teamsData
+      if ((!finalTeams || finalTeams.length === 0) && standingData && standingData.length > 0) {
+        finalTeams = standingData.map(s => ({
+          id: s.team_id || s.team, // Standings use 'team' for name
+          name: s.team,
+          owner_name: s.owner || 'Franchise Partner'
+        })) as Team[]
+      }
+      setAllTeams(finalTeams)
       
       // Select live match - prioritize 'live' status
       const live = matches.find(m => m.status === 'live')
