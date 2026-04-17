@@ -34,6 +34,8 @@ export interface Match {
   star_player_id?: string
   star_player_note?: string
   result_override?: 'team_a' | 'team_b' | 'draw'
+  pens_score_a?: number
+  pens_score_b?: number
   events?: MatchEvent[]
 }
 

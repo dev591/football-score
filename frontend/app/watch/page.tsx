@@ -14,8 +14,11 @@ function WatchHubContent() {
   
   const [activeTab, setActiveTab] = useState<'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise'>(tabParam || 'live')
   const [mobileLiveMode, setMobileLiveMode] = useState<'timeline' | 'lineups'>('timeline')
-  const [liveMatch, setLiveMatch] = useState<Match | null>(null)
+  const [fixtures, setFixtures] = useState<Match[]>([])
   const [liveEvents, setLiveEvents] = useState<MatchEvent[]>([])
+  const [benchTimers, setBenchTimers] = useState<Record<string, number>>({})
+  const [allTeams, setAllTeams] = useState<Team[]>([])
+  const [liveMatch, setLiveMatch] = useState<Match | null>(null)
   const [teamAPlayers, setTeamAPlayers] = useState<Player[]>([])
   const [teamBPlayers, setTeamBPlayers] = useState<Player[]>([])
   const [lineup, setLineup] = useState<any[]>([])
@@ -143,6 +146,30 @@ function WatchHubContent() {
     const pitchIds = lineup.filter(l => l.team_id === teamId).map(l => l.player_id)
     return basePlayers.filter(p => !pitchIds.includes(p.id))
   }
+
+  // Bench Timer Logic (2 mins for Yellow Card)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const newTimers: Record<string, number> = {}
+      
+      liveEvents.forEach(event => {
+        if (event.type === 'yellow' && event.created_at) {
+          const createdAt = new Date(event.created_at).getTime()
+          const diff = (now - createdAt) / 1000
+          const remaining = 120 - diff // 2 minutes = 120 seconds
+          
+          if (remaining > 0) {
+            newTimers[event.player_id] = Math.ceil(remaining)
+          }
+        }
+      })
+      
+      setBenchTimers(newTimers)
+    }, 1000)
+    
+    return () => clearInterval(interval)
+  }, [liveEvents])
 
   if (loading) {
     return (
@@ -300,10 +327,15 @@ function WatchHubContent() {
                                    const red = liveMatch ? getPlayerCardCount(p.id, teamId || '', 'red') : 0
                                    
                                    return (
-                                     <div key={p.id} className="flex justify-between items-center bg-black/40 p-3 border-l-2 border-primary-container">
+                                     <div key={p.id} className={`flex justify-between items-center bg-black/40 p-3 border-l-2 ${benchTimers[p.id] ? 'border-tertiary shadow-[0_0_15px_rgba(255,183,77,0.1)]' : 'border-primary-container'}`}>
                                         <div className="flex flex-col">
                                            <span className="text-[11px] font-black uppercase text-white truncate max-w-[120px] flex items-center gap-2">
                                               {p.is_captain && <span className="text-tertiary text-[9px]">(C)</span>} {p.name}
+                                              {benchTimers[p.id] && (
+                                                <span className="px-1.5 py-0.5 bg-tertiary text-black text-[7px] font-black animate-pulse rounded-xs">
+                                                  {Math.floor(benchTimers[p.id] / 60)}:{String(benchTimers[p.id] % 60).padStart(2, '0')}
+                                                </span>
+                                              )}
                                            </span>
                                            <div className="flex gap-1 mt-1">
                                               {yellow > 0 && <div className="w-2 h-3 bg-tertiary shadow-[0_0_5px_rgba(255,183,77,0.5)]"></div>}
@@ -413,7 +445,12 @@ function WatchHubContent() {
                           <h4 className="font-headline font-black text-xl md:text-2xl uppercase italic tracking-tighter text-white">{m.team_a?.name}</h4>
                         </div>
                         <div className="flex flex-col items-center px-8 text-center">
-                          <div className="font-headline font-black text-4xl text-primary-container">{m.score_a} : {m.score_b}</div>
+                          <div className="font-headline font-black text-4xl text-primary-container">
+                             {m.score_a} : {m.score_b}
+                             {m.pens_score_a !== undefined && m.pens_score_b !== undefined && (
+                               <div className="text-[10px] text-tertiary mt-1">({m.pens_score_a}-{m.pens_score_b} P)</div>
+                             )}
+                          </div>
                           <button onClick={() => handleTabChange('live')} className="text-[9px] font-black text-white bg-primary-container px-4 py-1.5 uppercase mt-3 tracking-widest">SWITCH TO BROADCAST</button>
                         </div>
                         <div className="flex-1 text-center md:text-right">
@@ -664,9 +701,12 @@ function WatchHubContent() {
                                       <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
                                       <span className="font-headline font-black">{m.score_a ?? '-'}</span>
                                    </div>
-                                   <div className={`flex justify-between items-center ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary/40'}`}>
+                                   <div className={`flex justify-between items-center ${m.score_b! > m.score_a! || (m.pens_score_b! > m.pens_score_a!) ? 'text-white' : 'text-secondary/40'}`}>
                                       <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
-                                      <span className="font-headline font-black">{m.score_b ?? '-'}</span>
+                                      <span className="font-headline font-black">
+                                        {m.score_b ?? '-'}
+                                        {m.pens_score_b !== undefined && <span className="text-[8px] ml-1">({m.pens_score_b})</span>}
+                                      </span>
                                    </div>
                                 </div>
                              </div>

@@ -11,6 +11,8 @@ export default function LiveScoreTab() {
   const [lineup, setLineup] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentMinute, setCurrentMinute] = useState(0)
+  const [matchEvents, setMatchEvents] = useState<MatchEvent[]>([])
+  const [benchTimers, setBenchTimers] = useState<Record<string, number>>({})
   
   // UI State
   const [showEventModal, setShowEventModal] = useState(false)
@@ -30,14 +32,16 @@ export default function LiveScoreTab() {
 
   const loadMatchDeatils = async (m: Match) => {
     setSelectedMatch(m)
-    const [a, b, line] = await Promise.all([
+    const [a, b, line, events] = await Promise.all([
       api.getPlayers(m.team_a_id),
       api.getPlayers(m.team_b_id),
-      api.getLineup(m.id)
+      api.getLineup(m.id),
+      api.getMatchEvents(m.id)
     ])
     setTeamAPlayers(a)
     setTeamBPlayers(b)
     setLineup(line || [])
+    setMatchEvents(events)
   }
 
   useEffect(() => {
@@ -61,6 +65,30 @@ export default function LiveScoreTab() {
     const timer = setInterval(updateMinute, 10000)
     return () => clearInterval(timer)
   }, [selectedMatch])
+
+  // Bench Timer Logic (2 mins for Yellow Card)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const newTimers: Record<string, number> = {}
+      
+      matchEvents.forEach(event => {
+        if (event.type === 'yellow' && event.created_at) {
+          const createdAt = new Date(event.created_at).getTime()
+          const diff = (now - createdAt) / 1000
+          const remaining = 120 - diff // 2 minutes = 120 seconds
+          
+          if (remaining > 0) {
+            newTimers[event.player_id] = Math.ceil(remaining)
+          }
+        }
+      })
+      
+      setBenchTimers(newTimers)
+    }, 1000)
+    
+    return () => clearInterval(interval)
+  }, [matchEvents])
 
   const handleStatusChange = async (status: string) => {
     if (!selectedMatch) return
@@ -117,6 +145,10 @@ export default function LiveScoreTab() {
       if (eventType === 'goal') {
         setSelectedMatch({ ...selectedMatch, score_a: result.scores?.score_a, score_b: result.scores?.score_b })
       }
+      // Refresh events for timers
+      const updatedEvents = await api.getMatchEvents(selectedMatch.id)
+      setMatchEvents(updatedEvents)
+      
       setShowEventModal(false)
       setSubSwapId(null)
     } catch (err) {
@@ -132,7 +164,9 @@ export default function LiveScoreTab() {
     try {
       const result = await api.deleteLastMatchEvent(selectedMatch.id)
       setSelectedMatch({ ...selectedMatch, score_a: result.scores?.score_a ?? 0, score_b: result.scores?.score_b ?? 0 })
-      // Refresh events list if you have one locally or just rely on sockets
+      
+      const updatedEvents = await api.getMatchEvents(selectedMatch.id)
+      setMatchEvents(updatedEvents)
     } catch (err) {
       alert('Failed to undo event or no events found to undo.')
     }
@@ -234,6 +268,37 @@ export default function LiveScoreTab() {
                      </div>
                   </div>
                   <div className="flex gap-4 relative z-10">
+                    {selectedMatch.status === 'ft' && (
+                       <div className="flex items-center gap-4 bg-black/40 px-6 py-2 border border-white/10 rounded-lg">
+                          <span className="text-[9px] font-black text-secondary tracking-widest uppercase">PENS</span>
+                          <div className="flex items-center gap-2">
+                             <input 
+                               type="number"
+                               value={selectedMatch.pens_score_a ?? ''}
+                               onChange={async (e) => {
+                                 const val = parseInt(e.target.value)
+                                 const updated = await api.updateMatch(selectedMatch.id, { pens_score_a: isNaN(val) ? undefined : val })
+                                 setSelectedMatch(updated)
+                               }}
+                               className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"
+                               placeholder="A"
+                             />
+                             <span className="text-secondary font-black">-</span>
+                             <input 
+                               type="number"
+                               value={selectedMatch.pens_score_b ?? ''}
+                               onChange={async (e) => {
+                                 const val = parseInt(e.target.value)
+                                 const updated = await api.updateMatch(selectedMatch.id, { pens_score_b: isNaN(val) ? undefined : val })
+                                 setSelectedMatch(updated)
+                               }}
+                               className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"
+                               placeholder="B"
+                             />
+                          </div>
+                       </div>
+                    )}
+                    
                     {selectedMatch.status === 'scheduled' && (
                        <button onClick={() => handleStatusChange('live')} className="bg-tertiary text-black font-black px-12 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-tertiary/20">ACTIVATE SIGNAL</button>
                     )}
@@ -303,8 +368,15 @@ export default function LiveScoreTab() {
                                {/* Pitch List */}
                                <div className="space-y-1">
                                   {pitch.map(p => (
-                                    <div key={p.id} className="flex justify-between items-center bg-white/[0.03] p-3 border-l-2 border-primary-container group">
-                                       <span className="text-[11px] font-black uppercase tracking-tight text-white">{p.name} {p.is_captain && <span className="text-tertiary text-[9px] ml-2">(C)</span>}</span>
+                                    <div key={p.id} className={`flex justify-between items-center bg-white/[0.03] p-3 border-l-2 group ${benchTimers[p.id] ? 'border-tertiary bg-tertiary/5' : 'border-primary-container'}`}>
+                                       <span className="text-[11px] font-black uppercase tracking-tight text-white">
+                                         {p.name} {p.is_captain && <span className="text-tertiary text-[9px] ml-2">(C)</span>}
+                                         {benchTimers[p.id] && (
+                                           <span className="ml-3 px-2 py-0.5 bg-tertiary text-black text-[9px] font-black rounded-sm animate-pulse">
+                                             BENCH: {Math.floor(benchTimers[p.id] / 60)}:{String(benchTimers[p.id] % 60).padStart(2, '0')}
+                                           </span>
+                                         )}
+                                       </span>
                                        <div className="flex gap-2">
                                           {selectedMatch.status === 'scheduled' ? (
                                             <button onClick={() => handleToggleLineup(teamId, p.id)} className="material-symbols-outlined text-sm text-error">remove_circle</button>
