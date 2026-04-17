@@ -274,10 +274,11 @@ export default function LiveScoreTab() {
                           <div className="flex items-center gap-2">
                              <input 
                                type="number"
-                               value={selectedMatch.pens_score_a ?? ''}
+                               value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : ''}
                                onChange={async (e) => {
-                                 const val = parseInt(e.target.value)
-                                 const updated = await api.updateMatch(selectedMatch.id, { pens_score_a: isNaN(val) ? undefined : val })
+                                 const valA = e.target.value || '0'
+                                 const currentB = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : '0'
+                                 const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${valA}-${currentB}` as any })
                                  setSelectedMatch(updated)
                                }}
                                className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"
@@ -286,10 +287,11 @@ export default function LiveScoreTab() {
                              <span className="text-secondary font-black">-</span>
                              <input 
                                type="number"
-                               value={selectedMatch.pens_score_b ?? ''}
+                               value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : ''}
                                onChange={async (e) => {
-                                 const val = parseInt(e.target.value)
-                                 const updated = await api.updateMatch(selectedMatch.id, { pens_score_b: isNaN(val) ? undefined : val })
+                                 const valB = e.target.value || '0'
+                                 const currentA = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : '0'
+                                 const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${currentA}-${valB}` as any })
                                  setSelectedMatch(updated)
                                }}
                                className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"

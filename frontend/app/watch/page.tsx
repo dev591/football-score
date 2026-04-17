@@ -445,8 +445,8 @@ function WatchHubContent() {
                         <div className="flex flex-col items-center px-8 text-center">
                           <div className="font-headline font-black text-4xl text-primary-container">
                              {m.score_a} : {m.score_b}
-                             {m.pens_score_a !== undefined && m.pens_score_b !== undefined && (
-                               <div className="text-[10px] text-tertiary mt-1">({m.pens_score_a}-{m.pens_score_b} P)</div>
+                             {m.result_override?.startsWith('P:') && (
+                               <div className="text-[10px] text-tertiary mt-1">({m.result_override.split(':')[1]} P)</div>
                              )}
                           </div>
                           <button onClick={() => handleTabChange('live')} className="text-[9px] font-black text-white bg-primary-container px-4 py-1.5 uppercase mt-3 tracking-widest">SWITCH TO BROADCAST</button>
@@ -699,11 +699,11 @@ function WatchHubContent() {
                                       <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
                                       <span className="font-headline font-black">{m.score_a ?? '-'}</span>
                                    </div>
-                                   <div className={`flex justify-between items-center ${m.score_b! > m.score_a! || (m.pens_score_b! > m.pens_score_a!) ? 'text-white' : 'text-secondary/40'}`}>
+                                   <div className={`flex justify-between items-center ${(m.score_b! > m.score_a!) || (m.result_override?.startsWith('P:') && parseInt(m.result_override.split(':')[1].split('-')[1]) > parseInt(m.result_override.split(':')[1].split('-')[0])) ? 'text-white' : 'text-secondary/40'}`}>
                                       <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
                                       <span className="font-headline font-black">
                                         {m.score_b ?? '-'}
-                                        {m.pens_score_b !== undefined && <span className="text-[8px] ml-1">({m.pens_score_b})</span>}
+                                        {m.result_override?.startsWith('P:') && <span className="text-[8px] ml-1">({m.result_override.split(':')[1].split('-')[1]})</span>}
                                       </span>
                                    </div>
                                 </div>
