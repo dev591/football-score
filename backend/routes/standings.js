@@ -27,6 +27,7 @@ router.get('/', async (req, res) => {
     const standingsMap = {}
     teams.forEach(team => {
       standingsMap[team.id] = {
+        team_id: team.id,
         team: team.name,
         owner: team.owner_name,
         played: 0,

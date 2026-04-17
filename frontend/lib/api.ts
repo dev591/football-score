@@ -53,6 +53,7 @@ export interface MatchEvent {
 }
 
 export interface Standing {
+  team_id: string
   position: number
   team: string
   owner?: string
