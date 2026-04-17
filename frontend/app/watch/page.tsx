@@ -593,7 +593,7 @@ function WatchHubContent() {
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                    {allTeams.length > 0 ? (
                     allTeams.map((team, i) => {
-                      const stats = standings.find(s => s.team === team.name) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0 };
+                      const stats = standings.find(s => s.team.toLowerCase() === team.name.toLowerCase()) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0 };
                       return (
                         <div key={team.id} onClick={() => handleOpenSquad(team.id)} className="bg-surface-container-high p-8 border border-white/5 relative overflow-hidden group hover:border-primary-container/30 cursor-pointer transition-all">
                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-full translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform"></div>
@@ -647,31 +647,40 @@ function WatchHubContent() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 relative">
-                   {/* Column 1: Quarter-Finals / Eliminator */}
-                   <div className="space-y-8 flex flex-col justify-center">
-                      <div className="text-[9px] font-black text-secondary tracking-widest uppercase mb-4 opacity-30 text-center">ELIMINATOR</div>
-                      {fixtures.filter(f => f.bracket_type === 'eliminator' || f.bracket_type === 'qf').map(m => (
-                        <div key={m.id} className="bg-surface-container-high border border-white/5 p-4 relative group">
-                           <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
-                              <span className="text-[8px] font-black text-secondary uppercase">MATCH #{m.id.slice(-2)}</span>
-                              <span className="text-[8px] font-black text-primary-container uppercase">{m.status === 'live' ? 'LIVE' : m.time}</span>
-                           </div>
-                           <div className="space-y-2">
-                              <div className={`flex justify-between items-center ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary/40'}`}>
-                                 <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
-                                 <span className="font-headline font-black">{m.score_a ?? '-'}</span>
-                              </div>
-                              <div className={`flex justify-between items-center ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary/40'}`}>
-                                 <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
-                                 <span className="font-headline font-black">{m.score_b ?? '-'}</span>
-                              </div>
-                           </div>
-                        </div>
-                      ))}
-                      {fixtures.filter(f => f.bracket_type === 'eliminator' || f.bracket_type === 'qf').length === 0 && (
-                        <div className="py-12 border border-dashed border-white/5 text-center opacity-20 text-[8px] font-black uppercase tracking-widest">Awaiting Seeding</div>
-                      )}
-                   </div>
+                    {/* Column 1: Quarter-Finals / Eliminator */}
+                    <div className="space-y-8 flex flex-col justify-center">
+                       <div className="text-[9px] font-black text-secondary tracking-widest uppercase mb-4 opacity-30 text-center">ELIMINATOR / QF</div>
+                       {(() => {
+                         const qfMatches = fixtures.filter(f => f.bracket_type === 'eliminator' || f.bracket_type === 'qf');
+                         if (qfMatches.length > 0) {
+                           return qfMatches.map(m => (
+                             <div key={m.id} className="bg-surface-container-high border border-white/5 p-4 relative group">
+                                <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
+                                   <span className="text-[8px] font-black text-secondary uppercase">MATCH #{m.id.slice(-2)}</span>
+                                   <span className="text-[8px] font-black text-primary-container uppercase">{m.status === 'live' ? 'LIVE' : m.time}</span>
+                                </div>
+                                <div className="space-y-2">
+                                   <div className={`flex justify-between items-center ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary/40'}`}>
+                                      <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
+                                      <span className="font-headline font-black">{m.score_a ?? '-'}</span>
+                                   </div>
+                                   <div className={`flex justify-between items-center ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary/40'}`}>
+                                      <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
+                                      <span className="font-headline font-black">{m.score_b ?? '-'}</span>
+                                   </div>
+                                </div>
+                             </div>
+                           ));
+                         } else {
+                           // Phantom/Mock QF structure
+                           return [1, 2].map(i => (
+                             <div key={`mock-qf-${i}`} className="bg-black/10 border border-dashed border-white/5 p-8 text-center opacity-10">
+                                <span className="text-[8px] font-black uppercase tracking-widest">QUALIFIER {i} PENDING</span>
+                             </div>
+                           ));
+                         }
+                       })()}
+                    </div>
 
                    {/* Column 2: Semi-Finals */}
                    <div className="space-y-8 flex flex-col justify-center">

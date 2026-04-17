@@ -289,18 +289,30 @@ export default function LandingPage() {
       };
     }
 
-    // 2. Data Fetching
-    Promise.all([api.getMatches(), api.getTopScorers(), api.getGlobalStats()])
-      .then(([matchesData, scorersData, globalStats]) => {
+    // 2. Resilient Data Fetching
+    const fetchCoreData = async () => {
+      try {
+        const [matchesData, scorersData, globalStats] = await Promise.all([
+          api.getMatches().catch(err => { console.error('Matches fetch fail:', err); return []; }),
+          api.getTopScorers().catch(err => { console.error('Scorers fetch fail:', err); return []; }),
+          api.getGlobalStats().catch(err => { console.error('Stats fetch fail:', err); return { totalTeams: 0, totalPlayers: 0 }; })
+        ]);
+
         setMatches(matchesData);
         setTopScorers(scorersData.slice(0, 3));
         setStats({
-          totalTeams: globalStats.totalTeams,
-          totalPlayers: globalStats.totalPlayers
+          totalTeams: globalStats.totalTeams || 0,
+          totalPlayers: globalStats.totalPlayers || 0
         });
+      } catch (err) {
+        console.error('Fatal data fetch error:', err);
+      } finally {
         setLoading(false);
         setTimeout(() => ScrollTrigger.refresh(), 100);
-      }).catch(() => setLoading(false));
+      }
+    };
+
+    fetchCoreData();
 
     // 3. GSAP Global Animations
     if (typeof window !== 'undefined') {

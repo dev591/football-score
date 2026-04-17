@@ -221,9 +221,9 @@ router.get('/star-players', async (req, res) => {
 router.get('/global', async (req, res) => {
   try {
     const [teamsRes, playersRes, matchesRes] = await Promise.all([
-      supabase.from('teams').select('*', { count: 'exact', head: true }),
-      supabase.from('players').select('*', { count: 'exact', head: true }),
-      supabase.from('matches').select('*', { count: 'exact', head: true })
+      supabase.from('teams').select('id', { count: 'exact' }),
+      supabase.from('players').select('id', { count: 'exact' }),
+      supabase.from('matches').select('id', { count: 'exact' })
     ])
     
     res.json({
