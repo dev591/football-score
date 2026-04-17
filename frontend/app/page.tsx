@@ -55,6 +55,10 @@ const HeroSection = ({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasEleme
           WATCH LIVE
         </Link>
       </div>
+      <div className="mt-10 flex items-center gap-2 opacity-30 hover:opacity-60 transition-opacity">
+        <span className="material-symbols-outlined text-sm text-secondary">code</span>
+        <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-secondary">Crafted by <span className="text-white">Dev Chalana</span></span>
+      </div>
     </div>
   </section>
 );
@@ -238,6 +242,10 @@ const Footer = () => (
           <span className="font-body text-[10px] font-bold uppercase tracking-[0.05em]">ADMIN</span>
         </Link>
       </nav>
+    </div>
+    <div className="max-w-7xl mx-auto mt-10 pt-6 border-t border-outline-variant/10 flex items-center justify-center gap-2">
+      <span className="material-symbols-outlined text-sm text-secondary">code</span>
+      <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-secondary">Built by <span className="text-[#E62127]">Dev Chalana</span></span>
     </div>
   </footer>
 );
