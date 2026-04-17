@@ -10,9 +10,9 @@ import { useSearchParams, useRouter } from 'next/navigation'
 function WatchHubContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const tabParam = searchParams.get('tab') as 'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise' | null
+  const tabParam = searchParams.get('tab') as 'live' | 'schedule' | 'leaderboard' | 'franchise' | null
   
-  const [activeTab, setActiveTab] = useState<'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise'>(tabParam || 'live')
+  const [activeTab, setActiveTab] = useState<'live' | 'schedule' | 'leaderboard' | 'franchise'>(tabParam || 'live')
   const [mobileLiveMode, setMobileLiveMode] = useState<'timeline' | 'lineups'>('timeline')
   const [fixtures, setFixtures] = useState<Match[]>([])
   const [liveEvents, setLiveEvents] = useState<MatchEvent[]>([])
@@ -273,7 +273,7 @@ function WatchHubContent() {
 
         {/* 3. STICKY TAB NAVIGATION */}
         <nav className="sticky top-[72px] md:top-[96px] z-40 bg-surface-container-high/95 backdrop-blur-2xl flex w-full border border-white/5 mb-6 md:mb-8 rounded-sm shadow-2xl">
-          {['live', 'schedule', 'leaderboard', 'franchise', 'brackets'].map((tab) => (
+          {['live', 'schedule', 'leaderboard', 'franchise'].map((tab) => (
             <button 
               key={tab}
               onClick={() => handleTabChange(tab as any)} 
@@ -679,110 +679,6 @@ function WatchHubContent() {
                   )}
                </div>
             </div>
-          )}
-
-          {activeTab === 'brackets' && (
-             <div className="py-12 md:py-20 max-w-6xl mx-auto px-4">
-                <div className="flex flex-col items-center text-center mb-16">
-                   <h2 className="font-headline font-black text-4xl md:text-7xl uppercase italic text-white tracking-tighter leading-none mb-4">TOURNAMENT <span className="text-primary-container">BRACKET</span></h2>
-                   <p className="text-[10px] md:text-[12px] font-bold text-secondary uppercase tracking-[0.5em] opacity-40">ROAD TO THE CHAMPIONSHIP</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 relative">
-                    {/* Column 1: Quarter-Finals / Eliminator */}
-                    <div className="space-y-8 flex flex-col justify-center">
-                       <div className="text-[9px] font-black text-secondary tracking-widest uppercase mb-4 opacity-30 text-center">ELIMINATOR / QF</div>
-                       {(() => {
-                         const qfMatches = fixtures.filter(f => f.bracket_type === 'eliminator' || f.bracket_type === 'qf');
-                         if (qfMatches.length > 0) {
-                           return qfMatches.map(m => (
-                             <div key={m.id} className="bg-surface-container-high border border-white/5 p-4 relative group">
-                                <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-2">
-                                   <span className="text-[8px] font-black text-secondary uppercase">MATCH #{m.id.slice(-2)}</span>
-                                   <span className="text-[8px] font-black text-primary-container uppercase">{m.status === 'live' ? 'LIVE' : m.time}</span>
-                                </div>
-                                <div className="space-y-2">
-                                   <div className={`flex justify-between items-center ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary/40'}`}>
-                                      <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
-                                      <span className="font-headline font-black">{m.score_a ?? '-'}</span>
-                                   </div>
-                                   <div className={`flex justify-between items-center ${(m.score_b! > m.score_a!) || (m.result_override?.startsWith('P:') && parseInt(m.result_override.split(':')[1].split('-')[1]) > parseInt(m.result_override.split(':')[1].split('-')[0])) ? 'text-white' : 'text-secondary/40'}`}>
-                                      <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
-                                      <span className="font-headline font-black">
-                                        {m.score_b ?? '-'}
-                                        {m.result_override?.startsWith('P:') && <span className="text-[8px] ml-1">({m.result_override.split(':')[1].split('-')[1]})</span>}
-                                      </span>
-                                   </div>
-                                </div>
-                             </div>
-                           ));
-                         } else {
-                           // Phantom/Mock QF structure
-                           return [1, 2].map(i => (
-                             <div key={`mock-qf-${i}`} className="bg-black/10 border border-dashed border-white/5 p-8 text-center opacity-10">
-                                <span className="text-[8px] font-black uppercase tracking-widest">QUALIFIER {i} PENDING</span>
-                             </div>
-                           ));
-                         }
-                       })()}
-                    </div>
-
-                   {/* Column 2: Semi-Finals */}
-                   <div className="space-y-8 flex flex-col justify-center">
-                      <div className="text-[9px] font-black text-primary-container tracking-widest uppercase mb-4 text-center">SEMI-FINALS</div>
-                      {[0, 1].map(idx => {
-                        const m = fixtures.filter(f => f.bracket_type === 'sf')[idx]
-                        return m ? (
-                          <div key={m.id} className="bg-surface-container-high border-t-2 border-primary-container p-4 relative shadow-2xl">
-                             <div className="space-y-2">
-                                <div className={`flex justify-between items-center ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary/40'}`}>
-                                   <span className="text-xs font-black uppercase italic">{m.team_a?.name || 'TBD'}</span>
-                                   <span className="font-headline font-black">{m.score_a ?? '-'}</span>
-                                </div>
-                                <div className={`flex justify-between items-center ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary/40'}`}>
-                                   <span className="text-xs font-black uppercase italic">{m.team_b?.name || 'TBD'}</span>
-                                   <span className="font-headline font-black">{m.score_b ?? '-'}</span>
-                                </div>
-                             </div>
-                          </div>
-                        ) : (
-                          <div key={idx} className="bg-black/20 border border-dashed border-white/5 p-8 text-center opacity-20 text-[8px] font-black uppercase tracking-widest">TBD</div>
-                        )
-                      })}
-                   </div>
-
-                   {/* Column 3: Grand Final */}
-                   <div className="flex flex-col justify-center">
-                      <div className="text-[9px] font-black text-tertiary tracking-widest uppercase mb-4 text-center">GRAND FINAL</div>
-                      {fixtures.find(f => f.bracket_type === 'final') ? (
-                        (() => {
-                          const m = fixtures.find(f => f.bracket_type === 'final')!
-                          return (
-                            <div className="bg-surface-container-highest border-2 border-tertiary p-8 relative shadow-[0_0_50px_rgba(255,183,77,0.1)]">
-                               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-tertiary text-black text-[9px] font-black px-4 py-1 uppercase tracking-widest">CHAMPIONSHIP</div>
-                               <div className="space-y-4 pt-4">
-                                  <div className={`flex justify-between items-center ${m.score_a! > m.score_b! ? 'text-white' : 'text-secondary/40'}`}>
-                                     <span className="text-lg font-black uppercase italic tracking-tighter">{m.team_a?.name || 'TBD'}</span>
-                                     <span className="font-headline font-black text-2xl">{m.score_a ?? '-'}</span>
-                                  </div>
-                                  <div className="h-px bg-white/5"></div>
-                                  <div className={`flex justify-between items-center ${m.score_b! > m.score_a! ? 'text-white' : 'text-secondary/40'}`}>
-                                     <span className="text-lg font-black uppercase italic tracking-tighter">{m.team_b?.name || 'TBD'}</span>
-                                     <span className="font-headline font-black text-2xl">{m.score_b ?? '-'}</span>
-                                  </div>
-                               </div>
-                            </div>
-                          )
-                        })()
-                      ) : (
-                        <div className="bg-black/20 border-2 border-dashed border-tertiary/20 p-16 text-center opacity-20">
-                           <span className="material-symbols-outlined text-4xl mb-4">trophy</span>
-                           <div className="text-[8px] font-black uppercase tracking-widest">FINAL PENDING</div>
-                        </div>
-                      )}
-                   </div>
-                </div>
-             </div>
           )}
         </div>
       </main>
