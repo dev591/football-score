@@ -94,6 +94,27 @@ export interface GlobalStats {
 }
 
 // API Functions
+// API Functions
+const fetchWithNoCache = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    cache: 'no-store'
+  })
+}
+
+const handleResponse = async <T>(response: Response, defaultValue: T): Promise<T> => {
+  if (!response.ok) {
+    console.warn(`API Error: ${response.status} ${response.statusText}`)
+    return defaultValue
+  }
+  const data = await response.json()
+  // Ensure that if we expect an array, we get an array
+  if (Array.isArray(defaultValue) && !Array.isArray(data)) {
+    return defaultValue
+  }
+  return data
+}
+
 export const api = {
   // Auth
   async login(password: string) {
@@ -107,8 +128,8 @@ export const api = {
 
   // Teams
   async getTeams(): Promise<Team[]> {
-    const response = await fetch(`${API_BASE_URL}/teams`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/teams`)
+    return handleResponse(response, [])
   },
 
   async createTeam(name: string) {
@@ -132,8 +153,8 @@ export const api = {
   // Players
   async getPlayers(teamId?: string): Promise<Player[]> {
     const url = teamId ? `${API_BASE_URL}/players?team_id=${teamId}` : `${API_BASE_URL}/players`
-    const response = await fetch(url)
-    return response.json()
+    const response = await fetchWithNoCache(url)
+    return handleResponse(response, [])
   },
 
   async createPlayer(data: Partial<Player>) {
@@ -187,8 +208,8 @@ export const api = {
 
   // Matches
   async getMatches(): Promise<Match[]> {
-    const response = await fetch(`${API_BASE_URL}/matches`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/matches`)
+    return handleResponse(response, [])
   },
 
   async createMatch(data: Partial<Match>) {
@@ -234,8 +255,8 @@ export const api = {
 
   // Match Events
   async getMatchEvents(matchId: string): Promise<MatchEvent[]> {
-    const response = await fetch(`${API_BASE_URL}/matches/${matchId}/events`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/matches/${matchId}/events`)
+    return handleResponse(response, [])
   },
 
   async createMatchEvent(matchId: string, data: Partial<MatchEvent>) {
@@ -256,34 +277,34 @@ export const api = {
 
   // Stats (backend mounts at /api/standings)
   async getStandings(): Promise<Standing[]> {
-    const response = await fetch(`${API_BASE_URL}/standings`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/standings`)
+    return handleResponse(response, [])
   },
 
   async getTopScorers(): Promise<TopScorer[]> {
-    const response = await fetch(`${API_BASE_URL}/standings/top-scorers`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/standings/top-scorers`)
+    return handleResponse(response, [])
   },
 
   async getStarPlayers(): Promise<StarPlayer[]> {
-    const response = await fetch(`${API_BASE_URL}/standings/star-players`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/standings/star-players`)
+    return handleResponse(response, [])
   },
 
   async getDiscipline(): Promise<Discipline[]> {
-    const response = await fetch(`${API_BASE_URL}/standings/discipline`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/standings/discipline`)
+    return handleResponse(response, [])
   },
 
   async getGlobalStats(): Promise<GlobalStats> {
-    const response = await fetch(`${API_BASE_URL}/standings/global`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/standings/global`)
+    return handleResponse(response, { totalTeams: 0, totalPlayers: 0, totalMatches: 0 })
   },
 
   // Lineups
   async getLineup(matchId: string) {
-    const response = await fetch(`${API_BASE_URL}/lineups/${matchId}`)
-    return response.json()
+    const response = await fetchWithNoCache(`${API_BASE_URL}/lineups/${matchId}`)
+    return handleResponse(response, [])
   },
 
   async setLineup(matchId: string, teamId: string, playerIds: string[]) {

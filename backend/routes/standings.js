@@ -187,31 +187,46 @@ router.get('/star-players', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('matches')
-      .select(`
-        star_player_id,
-        player:players!matches_star_player_id_fkey(name),
-        team_a:teams!matches_team_a_id_fkey(name),
-        team_b:teams!matches_team_b_id_fkey(name)
-      `)
+      .select('star_player_id, star_player_note')
       .eq('status', 'ft')
       .not('star_player_id', 'is', null)
     
     if (error) throw error
-    
+
+    // Count star awards per player
     const starCounts = {}
     data.forEach(match => {
       const key = match.star_player_id
-      const playerName = match.player?.name || 'Unknown Player'
       if (!starCounts[key]) {
-        starCounts[key] = {
-          player_name: playerName,
-          star_count: 0
-        }
+        starCounts[key] = { player_id: key, star_count: 0 }
       }
       starCounts[key].star_count++
     })
-    
-    const result = Object.values(starCounts).sort((a, b) => b.star_count - a.star_count)
+
+    // Fetch player names in one query
+    const playerIds = Object.keys(starCounts)
+    if (playerIds.length === 0) return res.json([])
+
+    const { data: players, error: playersError } = await supabase
+      .from('players')
+      .select('id, name, team:teams(name)')
+      .in('id', playerIds)
+
+    if (playersError) throw playersError
+
+    const playerMap = {}
+    players.forEach(p => {
+      playerMap[p.id] = { name: p.name, team: p.team?.name || '' }
+    })
+
+    const result = Object.values(starCounts)
+      .map(s => ({
+        player_name: playerMap[s.player_id]?.name || 'Unknown Player',
+        team_name: playerMap[s.player_id]?.team || '',
+        star_count: s.star_count
+      }))
+      .sort((a, b) => b.star_count - a.star_count)
+
     res.json(result)
   } catch (error) {
     console.error('Error fetching star players:', error)

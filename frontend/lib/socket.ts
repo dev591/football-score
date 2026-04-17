@@ -4,7 +4,12 @@ let socket: Socket | null = null
 
 export function initSocket() {
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000')
+    // Dynamically derive the socket URL from the API_BASE_URL if NEXT_PUBLIC_SOCKET_URL is not set
+    // This handles production environments where the domain can't be localhost
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://football-score-production.up.railway.app/api'
+    const defaultSocketUrl = API_BASE_URL.replace(/\/api$/, '')
+    
+    socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || defaultSocketUrl)
   }
   return socket
 }

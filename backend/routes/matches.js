@@ -17,12 +17,16 @@ router.get('/', async (req, res) => {
       `)
       .order('date')
       .order('time')
-    
-    if (error) throw error
-    
+
+    if (error) {
+      console.error('Database Error fetching matches:', error)
+      throw error
+    }
+
+    // Process counts correctly
     const matchesWithCount = data.map(match => ({
       ...match,
-      event_count: match.match_events?.length || 0,
+      event_count: (match.match_events && match.match_events[0]) ? match.match_events[0].count : 0,
       match_events: undefined
     }))
     

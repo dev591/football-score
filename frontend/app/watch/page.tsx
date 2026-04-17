@@ -50,25 +50,25 @@ function WatchHubContent() {
     try {
       // Fetch core data with individual error handling to prevent total blackout
       const [matches, standingData, scorerData, discData, starData, teamsData] = await Promise.all([
-        api.getMatches().catch(() => []),
-        api.getStandings().catch(() => []),
-        api.getTopScorers().catch(() => []),
-        api.getDiscipline().catch(() => []),
-        api.getStarPlayers().catch(() => []),
-        api.getTeams().catch(() => [])
+        api.getMatches(),
+        api.getStandings(),
+        api.getTopScorers(),
+        api.getDiscipline(),
+        api.getStarPlayers(),
+        api.getTeams()
       ])
       
-      setFixtures(matches)
-      setStandings(standingData)
-      setTopScorers(scorerData.slice(0, 10))
-      setDiscipline(discData.slice(0, 10))
-      setStarPlayers(starData.slice(0, 10))
+      setFixtures(Array.isArray(matches) ? matches : [])
+      setStandings(Array.isArray(standingData) ? standingData : [])
+      setTopScorers(Array.isArray(scorerData) ? scorerData.slice(0, 10) : [])
+      setDiscipline(Array.isArray(discData) ? discData.slice(0, 10) : [])
+      setStarPlayers(Array.isArray(starData) ? starData.slice(0, 10) : [])
       
-      // Resilient Team Data: Use api.getTeams() but fallback to teams found in standings if empty
-      let finalTeams = teamsData
-      if ((!finalTeams || finalTeams.length === 0) && standingData && standingData.length > 0) {
+      // Resilient Team Data
+      let finalTeams = Array.isArray(teamsData) ? teamsData : []
+      if (finalTeams.length === 0 && Array.isArray(standingData) && standingData.length > 0) {
         finalTeams = standingData.map(s => ({
-          id: s.team_id || s.team, // Standings use 'team' for name
+          id: s.team_id || s.team,
           name: s.team,
           owner_name: s.owner || 'Franchise Partner'
         })) as Team[]
@@ -76,22 +76,22 @@ function WatchHubContent() {
       setAllTeams(finalTeams)
       
       // Select live match - prioritize 'live' status
-      const live = matches.find(m => m.status === 'live')
+      const live = Array.isArray(matches) ? matches.find(m => m.status === 'live') : null
       if (live) {
         setLiveMatch(live)
         
         try {
-          const events = await api.getMatchEvents(live.id)
-          setLiveEvents(events)
-          
-          const [a, b, line] = await Promise.all([
+          const [events, a, b, line] = await Promise.all([
+            api.getMatchEvents(live.id),
             api.getPlayers(live.team_a_id),
             api.getPlayers(live.team_b_id),
             api.getLineup(live.id)
           ])
-          setTeamAPlayers(a)
-          setTeamBPlayers(b)
-          setLineup(line || [])
+          
+          setLiveEvents(Array.isArray(events) ? events : [])
+          setTeamAPlayers(Array.isArray(a) ? a : [])
+          setTeamBPlayers(Array.isArray(b) ? b : [])
+          setLineup(Array.isArray(line) ? line : [])
         } catch (metaErr) {
           console.error('Meta fetch failed', metaErr)
         }
@@ -103,6 +103,9 @@ function WatchHubContent() {
       } else {
         setLiveMatch(null)
         setLiveEvents([])
+        setTeamAPlayers([])
+        setTeamBPlayers([])
+        setLineup([])
       }
       setLoading(false)
     } catch (err) {
@@ -113,16 +116,25 @@ function WatchHubContent() {
 
   useEffect(() => {
     fetchData()
-    if (!socket) return
-    socket.on('match:updated', () => fetchData())
-    socket.on('fixtures:updated', () => fetchData())
-    socket.on('lineup:updated', () => fetchData())
-    return () => {
-      socket.off('match:updated')
-      socket.off('fixtures:updated')
-      socket.off('lineup:updated')
+    
+    const s = getSocket()
+    if (!s) return
+    
+    const handleUpdate = () => {
+      console.log('Socket update received, refreshing data...')
+      fetchData()
     }
-  }, [socket])
+    
+    s.on('match:updated', handleUpdate)
+    s.on('fixtures:updated', handleUpdate)
+    s.on('lineup:updated', handleUpdate)
+    
+    return () => {
+      s.off('match:updated', handleUpdate)
+      s.off('fixtures:updated', handleUpdate)
+      s.off('lineup:updated', handleUpdate)
+    }
+  }, [])
 
   const getPlayerGoalCount = (playerId: string, teamId: string) => {
     return liveEvents.filter(e => e.type === 'goal' && e.team_id === teamId && (e.player_id === playerId || e.player_in_id === playerId)).length
