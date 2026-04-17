@@ -18,7 +18,8 @@ export default function LiveScoreTab() {
   const [showEventModal, setShowEventModal] = useState(false)
   const [eventType, setEventType] = useState<'goal' | 'yellow' | 'red' | 'sub'>('goal')
   const [eventTeam, setEventTeam] = useState('')
-  const [subSwapId, setSubSwapId] = useState<string | null>(null) // The player being swapped (out or in)
+  const [subSwapId, setSubSwapId] = useState<string | null>(null) // The player being swapped out
+  const [subDirection, setSubDirection] = useState<'out' | 'in'>('out') // 'out' = pitch player selected, 'in' = bench player selected
 
   const loadBaseData = async () => {
     const data = await api.getMatches()
@@ -118,18 +119,27 @@ export default function LiveScoreTab() {
     setLineup(newLineup)
   }
 
-  const handlePerformSub = async (playerInId: string) => {
+  const handlePerformSub = async (selectedPlayerId: string) => {
     if (!selectedMatch || !subSwapId) return
     
     const teamId = eventTeam
-    const playerOutId = subSwapId
+    // If subDirection is 'out': subSwapId = player going out, selectedPlayerId = player coming in
+    // If subDirection is 'in': subSwapId = player coming in, selectedPlayerId = player going out
+    const playerOutId = subDirection === 'out' ? subSwapId : selectedPlayerId
+    const playerInId = subDirection === 'out' ? selectedPlayerId : subSwapId
 
-    await api.substitutePlayer(selectedMatch.id, teamId, playerOutId, playerInId, currentMinute)
-    
-    const newLineup = await api.getLineup(selectedMatch.id)
-    setLineup(newLineup)
-    setSubSwapId(null)
-    setShowEventModal(false)
+    try {
+      await api.substitutePlayer(selectedMatch.id, teamId, playerOutId, playerInId, currentMinute)
+      const newLineup = await api.getLineup(selectedMatch.id)
+      setLineup(newLineup)
+      const updatedEvents = await api.getMatchEvents(selectedMatch.id)
+      setMatchEvents(updatedEvents)
+      setSubSwapId(null)
+      setShowEventModal(false)
+    } catch (err) {
+      console.error('Sub failed:', err)
+      alert('Substitution failed. Check connection.')
+    }
   }
 
   const handleAddEvent = async (playerId: string) => {
@@ -388,7 +398,7 @@ export default function LiveScoreTab() {
                                             <button onClick={() => handleToggleLineup(teamId, p.id)} className="material-symbols-outlined text-sm text-error">remove_circle</button>
                                           ) : (
                                             <button 
-                                              onClick={() => { setEventTeam(teamId); setSubSwapId(p.id); setEventType('sub'); setShowEventModal(true); }}
+                                              onClick={() => { setEventTeam(teamId); setSubSwapId(p.id); setSubDirection('out'); setEventType('sub'); setShowEventModal(true); }}
                                               className="bg-white/10 text-[8px] font-black px-3 py-1 uppercase tracking-widest hover:bg-tertiary hover:text-black transition-all"
                                             >
                                               🔄 SUB
@@ -409,7 +419,7 @@ export default function LiveScoreTab() {
                                           <button onClick={() => handleToggleLineup(teamId, p.id)} className="material-symbols-outlined text-sm text-primary-container">add_circle</button>
                                        ) : (
                                           <button 
-                                            onClick={() => { setEventTeam(teamId); setSubSwapId(p.id); setEventType('sub'); setShowEventModal(true); }}
+                                            onClick={() => { setEventTeam(teamId); setSubSwapId(p.id); setSubDirection('in'); setEventType('sub'); setShowEventModal(true); }}
                                             className="opacity-0 group-hover:opacity-100 bg-white/10 text-[8px] font-black px-3 py-1 uppercase tracking-widest transition-all"
                                           >
                                             🔄 SUB
@@ -443,24 +453,26 @@ export default function LiveScoreTab() {
                  <div>
                     <span className="text-[10px] font-black text-primary-container tracking-[0.5em] uppercase mb-2 block">BROADCAST OPERATOR UNIT</span>
                     <h3 className="font-headline font-black text-4xl tracking-tighter uppercase italic text-white leading-none">
-                      {eventType === 'sub' ? (subSwapId ? `SELECT REPLACEMENT FOR ${[...teamAPlayers, ...teamBPlayers].find(p => p.id === subSwapId)?.name}` : 'INITIATE TACTICAL SWAP') : `LOG ${eventType.toUpperCase()}`}
+                      {eventType === 'sub' ? (subSwapId ? `SELECT ${subDirection === 'out' ? 'REPLACEMENT FOR' : 'WHO COMES OFF FOR'} ${[...teamAPlayers, ...teamBPlayers].find(p => p.id === subSwapId)?.name}` : 'INITIATE TACTICAL SWAP') : `LOG ${eventType.toUpperCase()}`}
                     </h3>
                  </div>
-                 <button onClick={() => { setShowEventModal(false); setSubSwapId(null); }} className="w-16 h-16 flex items-center justify-center hover:bg-white/5 transition-all text-secondary hover:text-white border border-white/5">
+                 <button onClick={() => { setShowEventModal(false); setSubSwapId(null); setSubDirection('out'); }} className="w-16 h-16 flex items-center justify-center hover:bg-white/5 transition-all text-secondary hover:text-white border border-white/5">
                     <span className="material-symbols-outlined text-4xl">close</span>
                  </button>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-6 custom-scrollbar">
                  {(eventType === 'sub' && subSwapId) 
-                   ? (getPitchPlayers(eventTeam).find(p => p.id === subSwapId) ? getBenchPlayers(eventTeam) : getPitchPlayers(eventTeam)).map(player => (
+                   ? (subDirection === 'out' ? getBenchPlayers(eventTeam) : getPitchPlayers(eventTeam)).map(player => (
                        <button 
                          key={player.id}
                          onClick={() => handlePerformSub(player.id)}
                          className="group w-full p-6 bg-black/50 border border-white/5 font-headline font-black text-sm uppercase tracking-widest text-white hover:bg-primary-container hover:border-primary-container transition-all flex justify-between items-center"
                        >
                          {player.name}
-                         <span className="text-[10px] text-primary-container font-black p-2 bg-primary-container/20 opacity-0 group-hover:opacity-100 transition-opacity">SWAP IN</span>
+                         <span className="text-[10px] text-primary-container font-black p-2 bg-primary-container/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                           {subDirection === 'out' ? 'COMES IN' : 'GOES OFF'}
+                         </span>
                        </button>
                     ))
                    : (eventTeam === selectedMatch?.team_a_id ? teamAPlayers : teamBPlayers).map(player => (

@@ -67,20 +67,15 @@ router.post('/:matchId/substitute', async (req, res) => {
     const { team_id, player_out_id, player_in_id, minute } = req.body
     const io = req.app.get('io')
 
-    // 1. Record the substitution event
-    // We need names for the event log text if we want descriptive logs, 
-    // but the events table usually just stores IDs.
-    const { data: playerOut } = await supabase.from('players').select('name').eq('id', player_out_id).single()
-    const { data: playerIn } = await supabase.from('players').select('name').eq('id', player_in_id).single()
-
+    // 1. Record the substitution event using actual player UUIDs
     const { error: eventError } = await supabase
       .from('match_events')
       .insert({
         match_id: matchId,
         team_id: team_id,
         type: 'sub',
-        player_id: playerOut?.name || player_out_id, // Currently using name as ID in event logs based on previous code
-        player_in_id: playerIn?.name || player_in_id,
+        player_id: player_out_id,
+        player_in_id: player_in_id,
         minute: minute || 0
       })
     
