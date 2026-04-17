@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { getSocket } from '@/lib/socket'
 import { format } from 'date-fns'
-import { Match, Standing, TopScorer, Discipline, StarPlayer, api, MatchEvent, Player } from '@/lib/api'
+import { Match, Standing, TopScorer, Discipline, StarPlayer, api, MatchEvent, Player, Team } from '@/lib/api'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 
