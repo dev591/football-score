@@ -26,8 +26,6 @@ function WatchHubContent() {
   const [topScorers, setTopScorers] = useState<TopScorer[]>([])
   const [discipline, setDiscipline] = useState<Discipline[]>([])
   const [starPlayers, setStarPlayers] = useState<StarPlayer[]>([])
-  const [allTeams, setAllTeams] = useState<any[]>([])
-  const [fixtures, setFixtures] = useState<Match[]>([])
   const [selectedTeamForSquad, setSelectedTeamForSquad] = useState<string | null>(null)
   const [squadPlayers, setSquadPlayers] = useState<Player[]>([])
   const [squadLoading, setSquadLoading] = useState(false)
