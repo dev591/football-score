@@ -250,6 +250,30 @@ export default function LandingPage() {
   const [stats, setStats] = useState({ totalTeams: 0, totalPlayers: 0 })
   const [loading, setLoading] = useState(true)
 
+  // Run counter animation whenever stats change and are non-zero
+  useEffect(() => {
+    if (stats.totalTeams === 0 && stats.totalPlayers === 0) return
+    if (typeof window === 'undefined') return
+
+    gsap.utils.toArray(".stat-count").forEach((stat: any) => {
+      const target = parseInt(stat.dataset.target || '0')
+      if (!target) return
+      ScrollTrigger.create({
+        trigger: "#stats",
+        start: "top 80%",
+        onEnter: () => {
+          gsap.to(stat, {
+            innerText: target, duration: 2, ease: "power2.out", snap: { innerText: 1 },
+            onUpdate: function(this: any) {
+              stat.innerText = Math.floor(this.targets()[0].innerText).toLocaleString()
+            }
+          })
+        },
+        once: true
+      })
+    })
+  }, [stats])
+
   useEffect(() => {
     // 1. Three.js background
     let cleanupThree: () => void = () => {};
@@ -322,17 +346,11 @@ export default function LandingPage() {
         .from(".hero-btns", { opacity: 0, y: 30, duration: 1, ease: "power4.out" }, 0.7);
       
       gsap.utils.toArray(".stat-count").forEach((stat: any) => {
-        const target = parseInt(stat.dataset.target || '0');
         ScrollTrigger.create({
           trigger: "#stats",
           start: "top 80%",
           onEnter: () => {
-            gsap.to(stat, {
-              innerText: target, duration: 2, ease: "power2.out", snap: { innerText: 1 },
-              onUpdate: function(this: any) {
-                stat.innerText = Math.floor(this.targets()[0].innerText).toLocaleString();
-              }
-            });
+            // Counter animation runs in separate useEffect after stats load
           }
         });
       });
