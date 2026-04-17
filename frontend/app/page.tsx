@@ -20,7 +20,7 @@ const Navbar = () => (
         <Link className="text-neutral-400 font-headline font-bold uppercase tracking-tighter hover:text-white transition-colors" href="/watch?tab=leaderboard">STANDINGS</Link>
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-tertiary">SEASON 2025</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-tertiary">COLLEGE FOOTBALL</span>
         <div className="w-8 h-8 bg-surface-container-high border border-outline-variant/30 flex items-center justify-center">
           <span className="material-symbols-outlined text-sm text-secondary">person</span>
         </div>
@@ -39,7 +39,7 @@ const HeroSection = ({ canvasRef }: { canvasRef: React.RefObject<HTMLCanvasEleme
     <div className="relative z-10 text-center flex flex-col items-center">
       <div className="flex items-center gap-2 bg-black/60 px-4 py-1 mb-8 border border-outline-variant/20 backdrop-blur-sm">
         <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse-live"></span>
-        <span className="text-[10px] font-black tracking-[0.3em] text-on-surface">SEASON 2025 · IN PROGRESS</span>
+        <span className="text-[10px] font-black tracking-[0.3em] text-on-surface">STRIKER · TOURNAMENT</span>
       </div>
       <h1 className="hero-title font-headline text-[15vw] md:text-[12rem] font-black italic tracking-tighter leading-none text-white">
         STRIKER
