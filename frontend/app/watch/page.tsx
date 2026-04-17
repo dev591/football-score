@@ -40,7 +40,7 @@ function WatchHubContent() {
     }
   }, [tabParam, activeTab])
 
-  const handleTabChange = (tab: 'live' | 'schedule' | 'leaderboard' | 'brackets' | 'franchise') => {
+  const handleTabChange = (tab: 'live' | 'schedule' | 'leaderboard' | 'franchise') => {
     setActiveTab(tab)
     router.push(`/watch?tab=${tab}`, { scroll: false })
   }
