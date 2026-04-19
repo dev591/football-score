@@ -652,7 +652,7 @@ function WatchHubContent() {
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                    {allTeams.length > 0 ? (
                     allTeams.map((team, i) => {
-                      const stats = standings.find(s => s.team.toLowerCase() === team.name.toLowerCase()) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0 };
+                      const stats = standings.find(s => s.team.toLowerCase() === team.name.toLowerCase()) || { team: team.name, owner: team.owner_name, won: 0, lost: 0, played: 0, goals_for: 0 };
                       return (
                         <div key={team.id} onClick={() => handleOpenSquad(team.id)} className="bg-surface-container-high p-8 border border-white/5 relative overflow-hidden group hover:border-primary-container/30 cursor-pointer transition-all">
                           <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-full translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform"></div>
@@ -672,6 +672,10 @@ function WatchHubContent() {
                                 <div className="bg-black/60 p-4 border border-white/5">
                                    <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL LOSSES</span>
                                    <span className="font-headline font-black text-4xl text-error italic">{stats.lost}</span>
+                                </div>
+                                <div className="bg-black/60 p-4 border border-white/5 col-span-2">
+                                   <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-2 opacity-40">TOTAL GOALS</span>
+                                   <span className="font-headline font-black text-4xl text-tertiary italic">{(stats as any).goals_for ?? 0}</span>
                                 </div>
                              </div>
 
