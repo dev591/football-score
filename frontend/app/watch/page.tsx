@@ -415,7 +415,7 @@ function WatchHubContent() {
                                   </div>
                                   <p className="text-[10px] md:text-[13px] font-bold text-secondary uppercase tracking-widest leading-relaxed">
                                      {event.type === 'sub' ? 
-                                       <span className="flex items-center gap-2"><span className="text-error">↓</span> {event.player?.name || event.player_id} <span className="text-tertiary">↑</span> {event.player_in_id}</span> : 
+                                       <span className="flex items-center gap-2"><span className="text-error">↓</span> {event.player?.name || event.player_id} <span className="text-tertiary">↑</span> {(event as any).player_in?.name || event.player_in_id}</span> : 
                                        <span className="opacity-80">{event.player?.name || event.player_id} <span className="opacity-40 mx-2">/</span> {event.team?.name}</span>
                                      }
                                   </p>
@@ -575,6 +575,7 @@ function WatchHubContent() {
                             <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">D</th>
                             <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">L</th>
                             <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">GD</th>
+                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">GF</th>
                             <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-primary-container uppercase text-center">PTS</th>
                           </tr>
                         </thead>
@@ -596,6 +597,7 @@ function WatchHubContent() {
                               <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm hidden md:table-cell">{s.drawn}</td>
                               <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm">{s.lost}</td>
                               <td className="p-4 md:p-6 text-center font-bold text-tertiary text-xs md:text-sm hidden md:table-cell">{s.goal_difference > 0 ? `+${s.goal_difference}` : s.goal_difference}</td>
+                              <td className="p-4 md:p-6 text-center font-bold text-white text-xs md:text-sm hidden md:table-cell">{s.goals_for}</td>
                               <td className="p-4 md:p-6 text-center font-headline font-black text-lg md:text-2xl italic text-primary-container">{s.points}</td>
                             </tr>
                           )) : (

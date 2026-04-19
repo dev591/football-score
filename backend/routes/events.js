@@ -49,7 +49,8 @@ router.get('/', async (req, res) => {
       .from('match_events')
       .select(`
         *,
-        player:players(name),
+        player:players!match_events_player_id_fkey(name),
+        player_in:players!match_events_player_in_id_fkey(name),
         team:teams(name)
       `)
       .eq('match_id', matchId)
