@@ -92,7 +92,8 @@ router.get('/', async (req, res) => {
     standings.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points
       if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
-      return b.goals_for - a.goals_for
+      if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for
+      return a.team.localeCompare(b.team) // stable alphabetical tiebreaker
     })
     
     res.json(standings)
