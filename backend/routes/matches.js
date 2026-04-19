@@ -86,6 +86,11 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params
     const io = req.app.get('io')
     
+    // Delete all related data first (cascade)
+    await supabase.from('match_events').delete().eq('match_id', id)
+    await supabase.from('match_lineups').delete().eq('match_id', id)
+    
+    // Then delete the match
     const { error } = await supabase
       .from('matches')
       .delete()
