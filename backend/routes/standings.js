@@ -12,9 +12,7 @@ router.get('/', async (req, res) => {
     if (matchesError) throw matchesError
 
     // Filter for matches that have a result (either marked FT or have scores)
-    const processedMatches = matches.filter(m => 
-      m.status === 'ft' || (m.score_a !== null && m.score_b !== null)
-    )
+    const processedMatches = matches.filter(m => m.status === 'ft')
     
     // Get all teams
     const { data: teams, error: teamsError } = await supabase
