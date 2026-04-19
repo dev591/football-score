@@ -580,12 +580,21 @@ function WatchHubContent() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                          {standings.length > 0 ? standings.map((s, i) => (
+                          {standings.length > 0 ? standings.map((s, i) => {
+                            // Assign same position to teams with equal points, GD, and GF
+                            const pos = i === 0 ? 1 : (
+                              standings[i].points === standings[i-1].points &&
+                              standings[i].goal_difference === standings[i-1].goal_difference &&
+                              standings[i].goals_for === standings[i-1].goals_for
+                                ? standings.findIndex((x, j) => j < i && x.points === s.points && x.goal_difference === s.goal_difference && x.goals_for === s.goals_for) + 1
+                                : i + 1
+                            )
+                            return (
                             <tr key={s.team} onClick={() => {
                                 const t = fixtures.find(f => f.team_a?.name === s.team)?.team_a_id || fixtures.find(f => f.team_b?.name === s.team)?.team_b_id;
                                 if (t) handleOpenSquad(t);
                               }} className="hover:bg-white/[0.05] cursor-pointer transition-colors group">
-                              <td className="p-4 md:p-6 font-headline font-black text-sm md:text-xl italic text-white/20">{i + 1}</td>
+                              <td className="p-4 md:p-6 font-headline font-black text-sm md:text-xl italic text-white/20">{pos}</td>
                               <td className="p-4 md:p-6">
                                 <div className="flex flex-col">
                                   <span className="font-headline font-black text-xs md:text-lg uppercase text-white group-hover:text-primary-container transition-colors tracking-tight">{s.team}</span>
@@ -600,7 +609,8 @@ function WatchHubContent() {
                               <td className="p-4 md:p-6 text-center font-bold text-white text-xs md:text-sm hidden md:table-cell">{s.goals_for}</td>
                               <td className="p-4 md:p-6 text-center font-headline font-black text-lg md:text-2xl italic text-primary-container">{s.points}</td>
                             </tr>
-                          )) : (
+                            )
+                          }) : (
                             <tr>
                               <td colSpan={8} className="p-20 text-center text-[10px] font-black uppercase tracking-[0.4em] opacity-20">Awaiting Final Results</td>
                             </tr>
