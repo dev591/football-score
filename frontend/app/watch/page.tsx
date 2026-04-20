@@ -682,7 +682,7 @@ function WatchHubContent() {
                             </div>
                             {['NM CARTEL', 'NM LEGACY UNITED'].map((team, i) => (
                               <div key={team} className="bg-black/40 border border-white/5 p-3 opacity-25 grayscale">
-                                <span className="text-[7px] font-black text-secondary uppercase tracking-widest block mb-1">{i === 0 ? '4TH PLACE' : '5TH PLACE'}</span>
+                                <span className="text-[7px] font-black text-secondary uppercase tracking-widest block mb-1">4TH PLACE</span>
                                 <span className="font-headline font-black text-xs uppercase text-white line-through">{team}</span>
                               </div>
                             ))}
