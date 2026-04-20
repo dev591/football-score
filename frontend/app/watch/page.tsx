@@ -283,11 +283,14 @@ function WatchHubContent() {
                         </div>
                         <div className="bg-primary-container px-3 md:px-8 py-1 md:py-2 shadow-xl transform skew-x-[-20deg]">
                            <span className="font-headline font-black text-xs md:text-3xl text-white tracking-widest block transform skew-x-[20deg] leading-none">
-                             {elapsedMinutes}
-                             {liveMatch.stoppage_time! > 0 && <span className="text-[0.6em] opacity-80 ml-1">+ {liveMatch.stoppage_time}</span>}
-                             '
+                             {liveMatch.status === 'ht' ? 'HT' : `${elapsedMinutes}${liveMatch.stoppage_time! > 0 ? `+${liveMatch.stoppage_time}` : ''}'`}
                            </span>
                         </div>
+                        {liveMatch.status === 'ht' && (
+                          <div className="bg-tertiary/20 border border-tertiary/40 px-3 py-1 mt-2">
+                            <span className="text-[9px] font-black text-tertiary uppercase tracking-widest animate-pulse">HALF TIME</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Team B */}
@@ -398,14 +401,19 @@ function WatchHubContent() {
                   {/* ===== CENTER: LIVE FEED ===== */}
                   <div className={`lg:col-span-6 space-y-4 ${mobileLiveMode === 'timeline' ? 'block' : 'hidden lg:block'}`}>
                     {/* STATUS BAR */}
-                    <div className={`relative overflow-hidden flex items-center justify-between px-5 py-3 border ${liveMatch.status === 'live' ? 'bg-primary-container/10 border-primary-container/40 shadow-[0_0_30px_rgba(230,33,39,0.15)]' : 'bg-surface-container-high border-white/5'}`}>
+                    <div className={`relative overflow-hidden flex items-center justify-between px-5 py-3 border ${liveMatch.status === 'live' ? 'bg-primary-container/10 border-primary-container/40 shadow-[0_0_30px_rgba(230,33,39,0.15)]' : liveMatch.status === 'ht' ? 'bg-tertiary/10 border-tertiary/40' : 'bg-surface-container-high border-white/5'}`}>
                       {liveMatch.status === 'live' && <div className="absolute inset-0 bg-gradient-to-r from-primary-container/5 via-transparent to-primary-container/5 animate-pulse pointer-events-none"></div>}
+                      {liveMatch.status === 'ht' && <div className="absolute inset-0 bg-gradient-to-r from-tertiary/5 via-transparent to-tertiary/5 animate-pulse pointer-events-none"></div>}
                       <div className="flex items-center gap-3 relative z-10">
-                        {liveMatch.status === 'live' ? <><div className="w-2 h-2 rounded-full bg-primary-container animate-ping"></div><span className="text-[9px] font-black text-primary-container uppercase tracking-[0.3em]">LIVE BROADCAST</span></> : <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">FULL TIME</span>}
+                        {liveMatch.status === 'live' && <><div className="w-2 h-2 rounded-full bg-primary-container animate-ping"></div><span className="text-[9px] font-black text-primary-container uppercase tracking-[0.3em]">LIVE BROADCAST</span></>}
+                        {liveMatch.status === 'ht' && <><div className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div><span className="text-[9px] font-black text-tertiary uppercase tracking-[0.3em]">HALF TIME BREAK</span></>}
+                        {liveMatch.status === 'ft' && <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">FULL TIME</span>}
                       </div>
                       <div className="flex items-center gap-4 relative z-10">
-                        <span className="font-headline font-black text-2xl italic text-white">{elapsedMinutes}'</span>
-                        {liveMatch.stoppage_time! > 0 && <span className="text-[10px] font-black text-primary-container">+{liveMatch.stoppage_time}</span>}
+                        <span className={`font-headline font-black text-2xl italic ${liveMatch.status === 'ht' ? 'text-tertiary' : 'text-white'}`}>
+                          {liveMatch.status === 'ht' ? 'HT' : `${elapsedMinutes}'`}
+                        </span>
+                        {liveMatch.stoppage_time! > 0 && liveMatch.status === 'live' && <span className="text-[10px] font-black text-primary-container">+{liveMatch.stoppage_time}</span>}
                       </div>
                     </div>
 

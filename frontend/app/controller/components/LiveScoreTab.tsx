@@ -13,6 +13,7 @@ export default function LiveScoreTab() {
   const [currentMinute, setCurrentMinute] = useState(0)
   const [matchEvents, setMatchEvents] = useState<MatchEvent[]>([])
   const [benchTimers, setBenchTimers] = useState<Record<string, number>>({})
+  const [matchDuration, setMatchDuration] = useState(16) // default 16 mins
   
   // UI State
   const [showEventModal, setShowEventModal] = useState(false)
@@ -51,21 +52,36 @@ export default function LiveScoreTab() {
     }
   }, [selectedMatch?.id])
 
-  // Live Clock
+  // Live Clock — counts up to matchDuration, auto HT at half
   useEffect(() => {
     if (!selectedMatch || selectedMatch.status !== 'live' || !selectedMatch.started_at) {
       setCurrentMinute(0)
       return
     }
-    const updateMinute = () => {
+    const duration = (selectedMatch as any).match_duration || matchDuration
+    const halfTime = Math.floor(duration / 2)
+
+    const updateMinute = async () => {
       const start = new Date(selectedMatch.started_at!).getTime()
-      const diff = Math.floor((Date.now() - start) / 1000 / 60)
-      setCurrentMinute(Math.max(0, diff))
+      const elapsed = Math.floor((Date.now() - start) / 1000 / 60)
+      const clamped = Math.min(elapsed, duration)
+      setCurrentMinute(clamped)
+
+      // Auto trigger half time
+      if (clamped >= halfTime && selectedMatch.status === 'live') {
+        const htKey = `ht_triggered_${selectedMatch.id}`
+        if (!localStorage.getItem(htKey)) {
+          localStorage.setItem(htKey, 'true')
+          const updated = await api.updateMatchStatus(selectedMatch.id, 'ht')
+          setSelectedMatch(updated)
+          loadBaseData()
+        }
+      }
     }
     updateMinute()
     const timer = setInterval(updateMinute, 10000)
     return () => clearInterval(timer)
-  }, [selectedMatch])
+  }, [selectedMatch, matchDuration])
 
   // Bench Timer Logic (2 mins for Yellow Card)
   useEffect(() => {
@@ -90,6 +106,17 @@ export default function LiveScoreTab() {
     
     return () => clearInterval(interval)
   }, [matchEvents])
+
+  const handleStartMatch = async () => {
+    if (!selectedMatch) return
+    // Save duration to match via updateMatch
+    await api.updateMatch(selectedMatch.id, { stoppage_time: matchDuration } as any)
+    // Clear any previous HT trigger
+    localStorage.removeItem(`ht_triggered_${selectedMatch.id}`)
+    const updated = await api.updateMatchStatus(selectedMatch.id, 'live')
+    setSelectedMatch(updated)
+    loadBaseData()
+  }
 
   const handleStatusChange = async (status: string) => {
     if (!selectedMatch) return
@@ -281,64 +308,70 @@ export default function LiveScoreTab() {
                         </div>
                      </div>
                   </div>
-                  <div className="flex gap-4 relative z-10">
+                  <div className="flex flex-wrap gap-4 relative z-10">
+                    {/* PENS input for FT */}
                     {selectedMatch.status === 'ft' && (
                        <div className="flex items-center gap-4 bg-black/40 px-6 py-2 border border-white/10 rounded-lg">
                           <span className="text-[9px] font-black text-secondary tracking-widest uppercase">PENS</span>
                           <div className="flex items-center gap-2">
-                             <input 
-                               type="number"
-                               value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : ''}
-                               onChange={async (e) => {
-                                 const valA = e.target.value || '0'
-                                 const currentB = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : '0'
-                                 const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${valA}-${currentB}` as any })
-                                 setSelectedMatch(updated)
-                               }}
-                               className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"
-                               placeholder="A"
-                             />
+                             <input type="number" value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : ''} onChange={async (e) => { const valA = e.target.value || '0'; const currentB = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : '0'; const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${valA}-${currentB}` as any }); setSelectedMatch(updated) }} className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none" placeholder="A" />
                              <span className="text-secondary font-black">-</span>
-                             <input 
-                               type="number"
-                               value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : ''}
-                               onChange={async (e) => {
-                                 const valB = e.target.value || '0'
-                                 const currentA = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : '0'
-                                 const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${currentA}-${valB}` as any })
-                                 setSelectedMatch(updated)
-                               }}
-                               className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none"
-                               placeholder="B"
-                             />
+                             <input type="number" value={selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[1] : ''} onChange={async (e) => { const valB = e.target.value || '0'; const currentA = selectedMatch.result_override?.startsWith('P:') ? selectedMatch.result_override.split(':')[1].split('-')[0] : '0'; const updated = await api.updateMatch(selectedMatch.id, { result_override: `P:${currentA}-${valB}` as any }); setSelectedMatch(updated) }} className="w-10 bg-surface-container-highest text-white font-headline font-black text-center p-2 rounded focus:ring-1 focus:ring-tertiary focus:outline-none" placeholder="B" />
                           </div>
                        </div>
                     )}
-                    
+
+                    {/* SCHEDULED — duration picker + start */}
                     {selectedMatch.status === 'scheduled' && (
-                       <button onClick={() => handleStatusChange('live')} className="bg-tertiary text-black font-black px-12 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-tertiary/20">ACTIVATE SIGNAL</button>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center bg-black/60 border border-white/10 px-4 py-2">
+                          <span className="text-[8px] font-black text-secondary uppercase tracking-widest mb-1">MATCH DURATION</span>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => setMatchDuration(d => Math.max(4, d - 2))} className="w-7 h-7 bg-white/5 border border-white/10 font-black text-white hover:bg-white/10 transition-all">−</button>
+                            <span className="font-headline font-black text-2xl text-tertiary italic w-12 text-center">{matchDuration}</span>
+                            <button onClick={() => setMatchDuration(d => Math.min(60, d + 2))} className="w-7 h-7 bg-white/5 border border-white/10 font-black text-white hover:bg-white/10 transition-all">+</button>
+                          </div>
+                          <span className="text-[7px] font-black text-secondary/40 uppercase tracking-widest mt-1">MINS · HT AT {Math.floor(matchDuration/2)}'</span>
+                        </div>
+                        <button onClick={handleStartMatch} className="bg-tertiary text-black font-black px-10 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-tertiary/20 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm">play_arrow</span>
+                          START MATCH
+                        </button>
+                      </div>
                     )}
+
+                    {/* HT — second half button */}
+                    {selectedMatch.status === 'ht' && (
+                      <div className="flex items-center gap-3">
+                        <div className="bg-black/60 border border-tertiary/30 px-6 py-3 flex flex-col items-center">
+                          <span className="text-[8px] font-black text-tertiary uppercase tracking-widest animate-pulse">HALF TIME</span>
+                          <span className="text-[10px] font-black text-secondary uppercase tracking-widest mt-1">2ND HALF READY</span>
+                        </div>
+                        <button onClick={() => handleStatusChange('live')} className="bg-tertiary text-black font-black px-10 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-tertiary/20 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm">play_arrow</span>
+                          START 2ND HALF
+                        </button>
+                      </div>
+                    )}
+
+                    {/* LIVE — end match */}
                     {selectedMatch.status === 'live' && (
-                       <button onClick={() => handleStatusChange('ft')} className="bg-primary-container text-white font-black px-12 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-primary-container/20">END BROADCAST</button>
+                      <button onClick={() => handleStatusChange('ft')} className="bg-primary-container text-white font-black px-10 py-4 uppercase tracking-widest text-[11px] active:scale-95 shadow-xl shadow-primary-container/20 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">stop</span>
+                        FINISH MATCH
+                      </button>
                     )}
+
+                    {/* FT — revert */}
                     {selectedMatch.status === 'ft' && (
-                       <button onClick={() => handleStatusChange('scheduled')} className="bg-secondary text-white font-black px-12 py-4 uppercase tracking-widest text-[11px] active:scale-95">REVERT TO QUEUE</button>
+                      <button onClick={() => handleStatusChange('scheduled')} className="bg-secondary text-white font-black px-8 py-4 uppercase tracking-widest text-[11px] active:scale-95">REVERT TO QUEUE</button>
                     )}
-                     <button 
-                       onClick={handleUndoEvent}
-                       className="bg-black/40 text-tertiary border border-tertiary/40 hover:bg-tertiary hover:text-black px-6 py-4 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2"
-                       title="Remove last event"
-                     >
-                       <span className="material-symbols-outlined text-sm">undo</span>
-                       UNDO LAST
-                     </button>
-                    <button 
-                      onClick={handleResetMatch}
-                      className="bg-black/40 text-error border border-error/40 hover:bg-error hover:text-white px-6 py-4 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2"
-                      title="Clear all events and reset score"
-                    >
-                      <span className="material-symbols-outlined text-sm">restart_alt</span>
-                      RESET
+
+                    <button onClick={handleUndoEvent} className="bg-black/40 text-tertiary border border-tertiary/40 hover:bg-tertiary hover:text-black px-6 py-4 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">undo</span>UNDO
+                    </button>
+                    <button onClick={handleResetMatch} className="bg-black/40 text-error border border-error/40 hover:bg-error hover:text-white px-6 py-4 font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">restart_alt</span>RESET
                     </button>
                   </div>
                </div>
