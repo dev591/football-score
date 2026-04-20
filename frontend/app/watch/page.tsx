@@ -203,13 +203,25 @@ function WatchHubContent() {
   return (
     <div className="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white min-h-screen pb-32 md:pb-12">
       {/* 1. COMPACT CINEMATIC HEADER (MOBILE OPTIMIZED) */}
-      <header className="fixed top-0 w-full z-50 border-t-4 border-primary-container bg-[#0a0a0a]/90 backdrop-blur-3xl flex justify-between items-center px-4 md:px-8 py-3 md:py-5 shadow-2xl border-b border-white/5">
+      <header className={`fixed top-0 w-full z-50 backdrop-blur-3xl flex justify-between items-center px-4 md:px-8 py-3 md:py-5 shadow-2xl border-b border-white/5 ${
+        liveMatch?.bracket_type === 'final' 
+          ? 'border-t-4 border-[#FFD700] bg-[#0a0800]/90' 
+          : liveMatch?.bracket_type === 'sf'
+          ? 'border-t-4 border-[#C0C0C0] bg-[#080a0a]/90'
+          : 'border-t-4 border-primary-container bg-[#0a0a0a]/90'
+      }`}>
         <div className="flex items-center gap-4">
           <Link href="/" className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center border border-white/10 hover:bg-white/5 transition-all">
             <span className="material-symbols-outlined text-sm md:text-xl text-on-surface">arrow_back</span>
           </Link>
           <div className="flex flex-col">
-            <span className="text-[7px] md:text-[9px] font-black text-primary-container tracking-[0.4em] uppercase">BROADCAST SIGNAL</span>
+            <span className={`text-[7px] md:text-[9px] font-black tracking-[0.4em] uppercase ${
+              liveMatch?.bracket_type === 'final' ? 'text-[#FFD700]' : 
+              liveMatch?.bracket_type === 'sf' ? 'text-[#C0C0C0]' : 'text-primary-container'
+            }`}>
+              {liveMatch?.bracket_type === 'final' ? '🏆 THE GRAND FINAL' : 
+               liveMatch?.bracket_type === 'sf' ? '⚔️ SEMI FINAL' : 'BROADCAST SIGNAL'}
+            </span>
             <h1 className="font-headline font-black italic text-[#E62127] tracking-tighter text-lg md:text-2xl uppercase leading-none">STRIKER</h1>
           </div>
         </div>
@@ -223,12 +235,22 @@ function WatchHubContent() {
               >
                 <span className="material-symbols-outlined text-sm">refresh</span>
               </button>
-              <div className="flex items-center gap-3 bg-black/40 px-3 md:px-5 py-1.5 md:py-2 border border-white/10">
+              <div className={`flex items-center gap-3 px-3 md:px-5 py-1.5 md:py-2 border ${
+                liveMatch?.bracket_type === 'final' ? 'bg-[#FFD700]/10 border-[#FFD700]/40' :
+                liveMatch?.bracket_type === 'sf' ? 'bg-[#C0C0C0]/10 border-[#C0C0C0]/40' :
+                'bg-black/40 border-white/10'
+              }`}>
                 <div className="flex flex-col items-end">
-                   <span className="text-[7px] md:text-[9px] font-black text-primary-container uppercase tracking-widest leading-none">LIVE</span>
+                   <span className={`text-[7px] md:text-[9px] font-black uppercase tracking-widest leading-none ${
+                     liveMatch?.bracket_type === 'final' ? 'text-[#FFD700]' :
+                     liveMatch?.bracket_type === 'sf' ? 'text-[#C0C0C0]' : 'text-primary-container'
+                   }`}>LIVE</span>
                    <span className="text-[8px] font-bold text-secondary uppercase tracking-[0.2em] animate-pulse">STREAM ACTIVE</span>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-primary-container animate-pulse-live"></div>
+                <div className={`w-2 h-2 rounded-full animate-pulse-live ${
+                  liveMatch?.bracket_type === 'final' ? 'bg-[#FFD700]' :
+                  liveMatch?.bracket_type === 'sf' ? 'bg-[#C0C0C0]' : 'bg-primary-container'
+                }`}></div>
               </div>
            </div>
         )}
@@ -556,67 +578,122 @@ function WatchHubContent() {
 
           {activeTab === 'leaderboard' && (
             <div className="space-y-16">
-                {/* Team Standings Section */}
+                {/* TOURNAMENT BRACKET */}
                 <div className="space-y-6">
                    <div className="flex items-center gap-4 mb-6">
                       <div className="h-0.5 flex-1 bg-white/5"></div>
-                      <h3 className="font-headline font-black text-xs tracking-[0.4em] text-primary-container uppercase">LEAGUE STANDINGS</h3>
+                      <h3 className="font-headline font-black text-xs tracking-[0.4em] text-[#FFD700] uppercase">TOURNAMENT BRACKET</h3>
                       <div className="h-0.5 flex-1 bg-white/5"></div>
                    </div>
 
-                   <div className="overflow-x-auto bg-surface-container-high border border-white/5 shadow-2xl">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-black/60 border-b border-white/10">
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase">POS</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-left">FRANCHISE</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">P</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">W</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">D</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center">L</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">GD</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-secondary uppercase text-center hidden md:table-cell">GF</th>
-                            <th className="p-4 md:p-6 text-[8px] md:text-[10px] font-black tracking-[0.2em] text-primary-container uppercase text-center">PTS</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                          {standings.length > 0 ? standings.map((s, i) => {
-                            // Assign same position to teams with equal points, GD, and GF
-                            const pos = i === 0 ? 1 : (
-                              standings[i].points === standings[i-1].points &&
-                              standings[i].goal_difference === standings[i-1].goal_difference &&
-                              standings[i].goals_for === standings[i-1].goals_for
-                                ? standings.findIndex((x, j) => j < i && x.points === s.points && x.goal_difference === s.goal_difference && x.goals_for === s.goals_for) + 1
-                                : i + 1
-                            )
-                            return (
-                            <tr key={s.team} onClick={() => {
-                                const t = fixtures.find(f => f.team_a?.name === s.team)?.team_a_id || fixtures.find(f => f.team_b?.name === s.team)?.team_b_id;
-                                if (t) handleOpenSquad(t);
-                              }} className="hover:bg-white/[0.05] cursor-pointer transition-colors group">
-                              <td className="p-4 md:p-6 font-headline font-black text-sm md:text-xl italic text-white/20">{pos}</td>
-                              <td className="p-4 md:p-6">
-                                <div className="flex flex-col">
-                                  <span className="font-headline font-black text-xs md:text-lg uppercase text-white group-hover:text-primary-container transition-colors tracking-tight">{s.team}</span>
-                                  <span className="text-[7px] md:text-[9px] font-black text-secondary/40 uppercase tracking-widest">{s.owner}</span>
-                                </div>
-                              </td>
-                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm">{s.played}</td>
-                              <td className="p-4 md:p-6 text-center font-bold text-white text-xs md:text-sm">{s.won}</td>
-                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm hidden md:table-cell">{s.drawn}</td>
-                              <td className="p-4 md:p-6 text-center font-bold text-secondary text-xs md:text-sm">{s.lost}</td>
-                              <td className="p-4 md:p-6 text-center font-bold text-tertiary text-xs md:text-sm hidden md:table-cell">{s.goal_difference > 0 ? `+${s.goal_difference}` : s.goal_difference}</td>
-                              <td className="p-4 md:p-6 text-center font-bold text-white text-xs md:text-sm hidden md:table-cell">{s.goals_for}</td>
-                              <td className="p-4 md:p-6 text-center font-headline font-black text-lg md:text-2xl italic text-primary-container">{s.points}</td>
-                            </tr>
-                            )
-                          }) : (
-                            <tr>
-                              <td colSpan={8} className="p-20 text-center text-[10px] font-black uppercase tracking-[0.4em] opacity-20">Awaiting Final Results</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                   <div className="w-full overflow-x-auto pb-4">
+                     <div className="min-w-[700px] flex items-center justify-center gap-0 px-4">
+
+                       {/* === ELIMINATED COLUMN === */}
+                       <div className="flex flex-col gap-6 w-48">
+                         <div className="text-center mb-2">
+                           <span className="text-[8px] font-black tracking-[0.3em] text-secondary/40 uppercase">ELIMINATED</span>
+                         </div>
+                         {/* NM CARTEL */}
+                         <div className="relative">
+                           <div className="bg-black/60 border border-white/5 p-4 opacity-30 grayscale">
+                             <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-1">4TH PLACE</span>
+                             <span className="font-headline font-black text-sm uppercase text-white line-through">NM CARTEL</span>
+                           </div>
+                           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-px bg-white/10"></div>
+                         </div>
+                         {/* NM LEGACY UNITED */}
+                         <div className="relative">
+                           <div className="bg-black/60 border border-white/5 p-4 opacity-30 grayscale">
+                             <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-1">5TH PLACE</span>
+                             <span className="font-headline font-black text-sm uppercase text-white line-through">NM LEGACY UNITED</span>
+                           </div>
+                           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-px bg-white/10"></div>
+                         </div>
+                       </div>
+
+                       {/* connector */}
+                       <div className="w-8"></div>
+
+                       {/* === SEMI FINALS COLUMN === */}
+                       <div className="flex flex-col gap-4 w-52">
+                         <div className="text-center mb-2">
+                           <span className="text-[8px] font-black tracking-[0.3em] text-[#C0C0C0] uppercase">⚔️ SEMI FINALS</span>
+                         </div>
+
+                         {/* SF Match */}
+                         <div className="relative bg-surface-container-high border border-[#C0C0C0]/30 shadow-[0_0_30px_rgba(192,192,192,0.1)] overflow-hidden">
+                           <div className="absolute top-0 left-0 w-1 h-full bg-[#C0C0C0]"></div>
+                           <div className="p-4 pl-5 space-y-3">
+                             <span className="text-[8px] font-black text-[#C0C0C0] tracking-[0.3em] uppercase block">SEMI FINAL</span>
+                             {/* Team 1 */}
+                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-white/5">
+                               <span className="font-headline font-black text-xs uppercase text-white tracking-tight">NM VII SHADOWS</span>
+                               <span className="font-headline font-black text-lg text-[#C0C0C0] italic">
+                                 {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS') && (f.status === 'ft' || f.status === 'live')); if (!m) return '-'; return m.team_a?.name === 'NM VII SHADOWS' ? (m.score_a ?? '-') : (m.score_b ?? '-') })()}
+                               </span>
+                             </div>
+                             {/* Team 2 */}
+                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-white/5">
+                               <span className="font-headline font-black text-xs uppercase text-white tracking-tight">NM TRAPLORDS</span>
+                               <span className="font-headline font-black text-lg text-[#C0C0C0] italic">
+                                 {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS') && (f.status === 'ft' || f.status === 'live')); if (!m) return '-'; return m.team_a?.name === 'NM TRAPLORDS' ? (m.score_a ?? '-') : (m.score_b ?? '-') })()}
+                               </span>
+                             </div>
+                             {/* Status */}
+                             {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS')); return m?.status === 'live' ? <span className="text-[8px] font-black text-primary-container animate-pulse uppercase tracking-widest">● LIVE NOW</span> : m?.status === 'ft' ? <span className="text-[8px] font-black text-tertiary uppercase tracking-widest">✓ FULL TIME</span> : <span className="text-[8px] font-black text-secondary/40 uppercase tracking-widest">UPCOMING</span> })()}
+                           </div>
+                         </div>
+
+                         {/* NM INFERNO - bye to final */}
+                         <div className="relative bg-surface-container-high border border-[#FFD700]/20 overflow-hidden mt-2">
+                           <div className="absolute top-0 left-0 w-1 h-full bg-[#FFD700]"></div>
+                           <div className="p-4 pl-5">
+                             <span className="text-[8px] font-black text-[#FFD700] tracking-[0.3em] uppercase block mb-2">GROUP WINNERS</span>
+                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-[#FFD700]/20">
+                               <span className="font-headline font-black text-xs uppercase text-[#FFD700] tracking-tight">NM INFERNO</span>
+                               <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest">DIRECT FINAL</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* connector lines */}
+                       <div className="flex flex-col items-center w-16 gap-0" style={{height: '220px'}}>
+                         <div className="flex-1 w-px bg-white/10 ml-8"></div>
+                         <div className="w-8 h-px bg-white/10"></div>
+                         <div className="flex-1 w-px bg-white/10 ml-8"></div>
+                       </div>
+
+                       {/* === FINAL COLUMN === */}
+                       <div className="flex flex-col gap-4 w-52">
+                         <div className="text-center mb-2">
+                           <span className="text-[8px] font-black tracking-[0.3em] text-[#FFD700] uppercase">🏆 THE FINAL</span>
+                         </div>
+                         <div className="relative bg-surface-container-high border-2 border-[#FFD700]/50 shadow-[0_0_40px_rgba(255,215,0,0.15)] overflow-hidden">
+                           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#FFD700]"></div>
+                           <div className="p-5 pl-6 space-y-3">
+                             <span className="text-[8px] font-black text-[#FFD700] tracking-[0.3em] uppercase block">GRAND FINAL</span>
+                             <div className="flex items-center justify-between bg-black/60 px-3 py-3 border border-[#FFD700]/20">
+                               <span className="font-headline font-black text-sm uppercase text-[#FFD700] tracking-tight">NM INFERNO</span>
+                               <span className="font-headline font-black text-xl text-[#FFD700] italic">?</span>
+                             </div>
+                             <div className="flex items-center justify-between bg-black/40 px-3 py-3 border border-white/5">
+                               <span className="font-headline font-black text-sm uppercase text-secondary tracking-tight">SF WINNER</span>
+                               <span className="font-headline font-black text-xl text-secondary italic">?</span>
+                             </div>
+                             <span className="text-[8px] font-black text-secondary/40 uppercase tracking-widest">AWAITING SF RESULT</span>
+                           </div>
+                         </div>
+
+                         {/* Trophy */}
+                         <div className="flex flex-col items-center gap-2 pt-4 opacity-60">
+                           <span className="material-symbols-outlined text-5xl text-[#FFD700]">emoji_events</span>
+                           <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-[0.3em]">CHAMPION</span>
+                         </div>
+                       </div>
+
+                     </div>
                    </div>
                 </div>
 
