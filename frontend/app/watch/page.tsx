@@ -579,123 +579,216 @@ function WatchHubContent() {
           {activeTab === 'leaderboard' && (
             <div className="space-y-16">
                 {/* TOURNAMENT BRACKET */}
-                <div className="space-y-6">
-                   <div className="flex items-center gap-4 mb-6">
-                      <div className="h-0.5 flex-1 bg-white/5"></div>
-                      <h3 className="font-headline font-black text-xs tracking-[0.4em] text-[#FFD700] uppercase">TOURNAMENT BRACKET</h3>
-                      <div className="h-0.5 flex-1 bg-white/5"></div>
-                   </div>
+                {(() => {
+                  // --- Derive all bracket state from fixtures ---
+                  const sfMatch = fixtures.find(f =>
+                    (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') &&
+                    (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS')
+                  )
 
-                   <div className="w-full overflow-x-auto pb-4">
-                     <div className="min-w-[700px] flex items-center justify-center gap-0 px-4">
+                  const getSFScore = (team: string) => {
+                    if (!sfMatch) return '-'
+                    if (sfMatch.status !== 'ft' && sfMatch.status !== 'live') return '-'
+                    return sfMatch.team_a?.name === team ? (sfMatch.score_a ?? '-') : (sfMatch.score_b ?? '-')
+                  }
 
-                       {/* === ELIMINATED COLUMN === */}
-                       <div className="flex flex-col gap-6 w-48">
-                         <div className="text-center mb-2">
-                           <span className="text-[8px] font-black tracking-[0.3em] text-secondary/40 uppercase">ELIMINATED</span>
-                         </div>
-                         {/* NM CARTEL */}
-                         <div className="relative">
-                           <div className="bg-black/60 border border-white/5 p-4 opacity-30 grayscale">
-                             <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-1">4TH PLACE</span>
-                             <span className="font-headline font-black text-sm uppercase text-white line-through">NM CARTEL</span>
-                           </div>
-                           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-px bg-white/10"></div>
-                         </div>
-                         {/* NM LEGACY UNITED */}
-                         <div className="relative">
-                           <div className="bg-black/60 border border-white/5 p-4 opacity-30 grayscale">
-                             <span className="text-[8px] font-black text-secondary uppercase tracking-widest block mb-1">5TH PLACE</span>
-                             <span className="font-headline font-black text-sm uppercase text-white line-through">NM LEGACY UNITED</span>
-                           </div>
-                           <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-3 h-px bg-white/10"></div>
-                         </div>
-                       </div>
+                  const sfWinner = (() => {
+                    if (!sfMatch || sfMatch.status !== 'ft') return null
+                    const aScore = sfMatch.score_a ?? 0
+                    const bScore = sfMatch.score_b ?? 0
+                    if (aScore > bScore) return sfMatch.team_a?.name
+                    if (bScore > aScore) return sfMatch.team_b?.name
+                    return null // draw — shouldn't happen in SF
+                  })()
 
-                       {/* connector */}
-                       <div className="w-8"></div>
+                  const finalMatch = fixtures.find(f =>
+                    (f.team_a?.name === 'NM INFERNO' || f.team_b?.name === 'NM INFERNO') &&
+                    (f.bracket_type === 'final')
+                  )
 
-                       {/* === SEMI FINALS COLUMN === */}
-                       <div className="flex flex-col gap-4 w-52">
-                         <div className="text-center mb-2">
-                           <span className="text-[8px] font-black tracking-[0.3em] text-[#C0C0C0] uppercase">⚔️ SEMI FINALS</span>
-                         </div>
+                  const getFinalScore = (team: string) => {
+                    if (!finalMatch) return '?'
+                    if (finalMatch.status !== 'ft' && finalMatch.status !== 'live') return '?'
+                    return finalMatch.team_a?.name === team ? (finalMatch.score_a ?? '?') : (finalMatch.score_b ?? '?')
+                  }
 
-                         {/* SF Match */}
-                         <div className="relative bg-surface-container-high border border-[#C0C0C0]/30 shadow-[0_0_30px_rgba(192,192,192,0.1)] overflow-hidden">
-                           <div className="absolute top-0 left-0 w-1 h-full bg-[#C0C0C0]"></div>
-                           <div className="p-4 pl-5 space-y-3">
-                             <span className="text-[8px] font-black text-[#C0C0C0] tracking-[0.3em] uppercase block">SEMI FINAL</span>
-                             {/* Team 1 */}
-                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-white/5">
-                               <span className="font-headline font-black text-xs uppercase text-white tracking-tight">NM VII SHADOWS</span>
-                               <span className="font-headline font-black text-lg text-[#C0C0C0] italic">
-                                 {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS') && (f.status === 'ft' || f.status === 'live')); if (!m) return '-'; return m.team_a?.name === 'NM VII SHADOWS' ? (m.score_a ?? '-') : (m.score_b ?? '-') })()}
-                               </span>
-                             </div>
-                             {/* Team 2 */}
-                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-white/5">
-                               <span className="font-headline font-black text-xs uppercase text-white tracking-tight">NM TRAPLORDS</span>
-                               <span className="font-headline font-black text-lg text-[#C0C0C0] italic">
-                                 {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS') && (f.status === 'ft' || f.status === 'live')); if (!m) return '-'; return m.team_a?.name === 'NM TRAPLORDS' ? (m.score_a ?? '-') : (m.score_b ?? '-') })()}
-                               </span>
-                             </div>
-                             {/* Status */}
-                             {(() => { const m = fixtures.find(f => (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') && (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS')); return m?.status === 'live' ? <span className="text-[8px] font-black text-primary-container animate-pulse uppercase tracking-widest">● LIVE NOW</span> : m?.status === 'ft' ? <span className="text-[8px] font-black text-tertiary uppercase tracking-widest">✓ FULL TIME</span> : <span className="text-[8px] font-black text-secondary/40 uppercase tracking-widest">UPCOMING</span> })()}
-                           </div>
-                         </div>
+                  const finalOpponent = sfWinner || 'SF WINNER'
 
-                         {/* NM INFERNO - bye to final */}
-                         <div className="relative bg-surface-container-high border border-[#FFD700]/20 overflow-hidden mt-2">
-                           <div className="absolute top-0 left-0 w-1 h-full bg-[#FFD700]"></div>
-                           <div className="p-4 pl-5">
-                             <span className="text-[8px] font-black text-[#FFD700] tracking-[0.3em] uppercase block mb-2">GROUP WINNERS</span>
-                             <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-[#FFD700]/20">
-                               <span className="font-headline font-black text-xs uppercase text-[#FFD700] tracking-tight">NM INFERNO</span>
-                               <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest">DIRECT FINAL</span>
-                             </div>
-                           </div>
-                         </div>
-                       </div>
+                  const champion = (() => {
+                    if (!finalMatch || finalMatch.status !== 'ft') return null
+                    const aScore = finalMatch.score_a ?? 0
+                    const bScore = finalMatch.score_b ?? 0
+                    if (aScore > bScore) return finalMatch.team_a?.name
+                    if (bScore > aScore) return finalMatch.team_b?.name
+                    return null
+                  })()
 
-                       {/* connector lines */}
-                       <div className="flex flex-col items-center w-16 gap-0" style={{height: '220px'}}>
-                         <div className="flex-1 w-px bg-white/10 ml-8"></div>
-                         <div className="w-8 h-px bg-white/10"></div>
-                         <div className="flex-1 w-px bg-white/10 ml-8"></div>
-                       </div>
+                  return (
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="h-0.5 flex-1 bg-white/5"></div>
+                        <h3 className="font-headline font-black text-xs tracking-[0.4em] text-[#FFD700] uppercase">🏆 TOURNAMENT BRACKET</h3>
+                        <div className="h-0.5 flex-1 bg-white/5"></div>
+                      </div>
 
-                       {/* === FINAL COLUMN === */}
-                       <div className="flex flex-col gap-4 w-52">
-                         <div className="text-center mb-2">
-                           <span className="text-[8px] font-black tracking-[0.3em] text-[#FFD700] uppercase">🏆 THE FINAL</span>
-                         </div>
-                         <div className="relative bg-surface-container-high border-2 border-[#FFD700]/50 shadow-[0_0_40px_rgba(255,215,0,0.15)] overflow-hidden">
-                           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#FFD700]"></div>
-                           <div className="p-5 pl-6 space-y-3">
-                             <span className="text-[8px] font-black text-[#FFD700] tracking-[0.3em] uppercase block">GRAND FINAL</span>
-                             <div className="flex items-center justify-between bg-black/60 px-3 py-3 border border-[#FFD700]/20">
-                               <span className="font-headline font-black text-sm uppercase text-[#FFD700] tracking-tight">NM INFERNO</span>
-                               <span className="font-headline font-black text-xl text-[#FFD700] italic">?</span>
-                             </div>
-                             <div className="flex items-center justify-between bg-black/40 px-3 py-3 border border-white/5">
-                               <span className="font-headline font-black text-sm uppercase text-secondary tracking-tight">SF WINNER</span>
-                               <span className="font-headline font-black text-xl text-secondary italic">?</span>
-                             </div>
-                             <span className="text-[8px] font-black text-secondary/40 uppercase tracking-widest">AWAITING SF RESULT</span>
-                           </div>
-                         </div>
+                      {/* CHAMPION BANNER — shows after final */}
+                      {champion && (
+                        <div className="relative overflow-hidden bg-gradient-to-r from-[#1a1200] via-[#2a1f00] to-[#1a1200] border-2 border-[#FFD700] shadow-[0_0_80px_rgba(255,215,0,0.3)] p-8 flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-700">
+                          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,215,0,0.1)_0%,_transparent_70%)]"></div>
+                          <span className="material-symbols-outlined text-7xl text-[#FFD700] relative z-10" style={{fontVariationSettings: "'FILL' 1"}}>emoji_events</span>
+                          <div className="relative z-10">
+                            <p className="text-[10px] font-black text-[#FFD700]/60 tracking-[0.5em] uppercase mb-2">STRIKER CHAMPION</p>
+                            <h2 className="font-headline font-black text-4xl md:text-7xl uppercase italic text-[#FFD700] tracking-tighter leading-none">{champion}</h2>
+                            <p className="text-[10px] font-black text-[#FFD700]/40 tracking-[0.3em] uppercase mt-3">SEASON 2025 · COLLEGE FOOTBALL TOURNAMENT</p>
+                          </div>
+                        </div>
+                      )}
 
-                         {/* Trophy */}
-                         <div className="flex flex-col items-center gap-2 pt-4 opacity-60">
-                           <span className="material-symbols-outlined text-5xl text-[#FFD700]">emoji_events</span>
-                           <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-[0.3em]">CHAMPION</span>
-                         </div>
-                       </div>
+                      <div className="w-full overflow-x-auto pb-4">
+                        <div className="min-w-[720px] flex items-center justify-center gap-0 px-4" style={{minHeight: '320px'}}>
 
-                     </div>
-                   </div>
-                </div>
+                          {/* === ELIMINATED === */}
+                          <div className="flex flex-col gap-4 w-44">
+                            <div className="text-center mb-1">
+                              <span className="text-[8px] font-black tracking-[0.3em] text-secondary/30 uppercase">ELIMINATED</span>
+                            </div>
+                            {['NM CARTEL', 'NM LEGACY UNITED'].map((team, i) => (
+                              <div key={team} className="bg-black/40 border border-white/5 p-3 opacity-25 grayscale">
+                                <span className="text-[7px] font-black text-secondary uppercase tracking-widest block mb-1">{i === 0 ? '4TH PLACE' : '5TH PLACE'}</span>
+                                <span className="font-headline font-black text-xs uppercase text-white line-through">{team}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* gap */}
+                          <div className="w-6"></div>
+
+                          {/* === SEMI FINALS === */}
+                          <div className="flex flex-col gap-4 w-52">
+                            <div className="text-center mb-1">
+                              <span className="text-[8px] font-black tracking-[0.3em] text-[#C0C0C0] uppercase">⚔️ SEMI FINAL</span>
+                            </div>
+
+                            {/* SF card */}
+                            <div className={`relative bg-surface-container-high overflow-hidden border ${sfMatch?.status === 'live' ? 'border-primary-container shadow-[0_0_30px_rgba(230,33,39,0.2)]' : 'border-[#C0C0C0]/30'}`}>
+                              <div className={`absolute top-0 left-0 w-1 h-full ${sfMatch?.status === 'live' ? 'bg-primary-container' : 'bg-[#C0C0C0]'}`}></div>
+                              <div className="p-4 pl-5 space-y-2">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[7px] font-black text-[#C0C0C0] tracking-[0.3em] uppercase">SEMI FINAL</span>
+                                  {sfMatch?.status === 'live' && <span className="text-[7px] font-black text-primary-container animate-pulse uppercase tracking-widest">● LIVE</span>}
+                                  {sfMatch?.status === 'ft' && <span className="text-[7px] font-black text-tertiary uppercase tracking-widest">✓ FT</span>}
+                                  {(!sfMatch || sfMatch.status === 'scheduled') && <span className="text-[7px] font-black text-secondary/40 uppercase tracking-widest">UPCOMING</span>}
+                                </div>
+                                {['NM VII SHADOWS', 'NM TRAPLORDS'].map(team => {
+                                  const isWinner = sfWinner === team
+                                  const isLoser = sfWinner && sfWinner !== team
+                                  return (
+                                    <div key={team} className={`flex items-center justify-between px-3 py-2 border transition-all ${
+                                      isWinner ? 'bg-tertiary/10 border-tertiary/40' :
+                                      isLoser ? 'bg-black/20 border-white/5 opacity-40' :
+                                      'bg-black/40 border-white/5'
+                                    }`}>
+                                      <div className="flex items-center gap-2">
+                                        {isWinner && <span className="material-symbols-outlined text-xs text-tertiary" style={{fontVariationSettings:"'FILL' 1"}}>arrow_forward</span>}
+                                        <span className={`font-headline font-black text-xs uppercase tracking-tight ${isWinner ? 'text-tertiary' : 'text-white'}`}>{team}</span>
+                                      </div>
+                                      <span className={`font-headline font-black text-lg italic ${isWinner ? 'text-tertiary' : 'text-[#C0C0C0]'}`}>{getSFScore(team)}</span>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Inferno direct final */}
+                            <div className="relative bg-surface-container-high border border-[#FFD700]/30 overflow-hidden mt-2">
+                              <div className="absolute top-0 left-0 w-1 h-full bg-[#FFD700]"></div>
+                              <div className="p-4 pl-5">
+                                <span className="text-[7px] font-black text-[#FFD700] tracking-[0.3em] uppercase block mb-2">GROUP WINNERS · BYE</span>
+                                <div className="flex items-center justify-between bg-black/40 px-3 py-2 border border-[#FFD700]/20">
+                                  <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-xs text-[#FFD700]" style={{fontVariationSettings:"'FILL' 1"}}>arrow_forward</span>
+                                    <span className="font-headline font-black text-xs uppercase text-[#FFD700] tracking-tight">NM INFERNO</span>
+                                  </div>
+                                  <span className="text-[7px] font-black text-[#FFD700]/60 uppercase tracking-widest">FINAL</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* connector */}
+                          <div className="flex flex-col justify-center w-12" style={{height: '260px'}}>
+                            <div className="flex flex-col h-full items-end">
+                              <div className="flex-1 border-r border-t border-white/10 w-6"></div>
+                              <div className="w-6 border-b border-white/10"></div>
+                              <div className="flex-1 border-r border-b border-white/10 w-6"></div>
+                            </div>
+                          </div>
+
+                          {/* === FINAL === */}
+                          <div className="flex flex-col gap-4 w-56">
+                            <div className="text-center mb-1">
+                              <span className="text-[8px] font-black tracking-[0.3em] text-[#FFD700] uppercase">🏆 THE FINAL</span>
+                            </div>
+                            <div className={`relative bg-surface-container-high overflow-hidden border-2 ${
+                              finalMatch?.status === 'live' ? 'border-primary-container shadow-[0_0_50px_rgba(230,33,39,0.3)]' :
+                              finalMatch?.status === 'ft' ? 'border-[#FFD700] shadow-[0_0_50px_rgba(255,215,0,0.2)]' :
+                              'border-[#FFD700]/40 shadow-[0_0_30px_rgba(255,215,0,0.1)]'
+                            }`}>
+                              <div className={`absolute top-0 left-0 w-1.5 h-full ${finalMatch?.status === 'live' ? 'bg-primary-container' : 'bg-[#FFD700]'}`}></div>
+                              <div className="p-5 pl-6 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[7px] font-black text-[#FFD700] tracking-[0.3em] uppercase">GRAND FINAL</span>
+                                  {finalMatch?.status === 'live' && <span className="text-[7px] font-black text-primary-container animate-pulse uppercase tracking-widest">● LIVE</span>}
+                                  {finalMatch?.status === 'ft' && <span className="text-[7px] font-black text-tertiary uppercase tracking-widest">✓ FT</span>}
+                                  {!finalMatch && <span className="text-[7px] font-black text-secondary/40 uppercase tracking-widest">UPCOMING</span>}
+                                </div>
+                                {/* NM INFERNO */}
+                                {(() => {
+                                  const isWinner = champion === 'NM INFERNO'
+                                  const isLoser = champion && champion !== 'NM INFERNO'
+                                  return (
+                                    <div className={`flex items-center justify-between px-3 py-3 border ${isWinner ? 'bg-[#FFD700]/10 border-[#FFD700]/50' : isLoser ? 'bg-black/20 border-white/5 opacity-40' : 'bg-black/60 border-[#FFD700]/20'}`}>
+                                      <div className="flex items-center gap-2">
+                                        {isWinner && <span className="material-symbols-outlined text-sm text-[#FFD700]" style={{fontVariationSettings:"'FILL' 1"}}>emoji_events</span>}
+                                        <span className={`font-headline font-black text-sm uppercase tracking-tight ${isWinner ? 'text-[#FFD700]' : 'text-white'}`}>NM INFERNO</span>
+                                      </div>
+                                      <span className={`font-headline font-black text-2xl italic ${isWinner ? 'text-[#FFD700]' : 'text-white'}`}>{getFinalScore('NM INFERNO')}</span>
+                                    </div>
+                                  )
+                                })()}
+                                {/* SF Winner */}
+                                {(() => {
+                                  const isWinner = champion === finalOpponent
+                                  const isLoser = champion && champion !== finalOpponent
+                                  return (
+                                    <div className={`flex items-center justify-between px-3 py-3 border ${isWinner ? 'bg-[#FFD700]/10 border-[#FFD700]/50' : isLoser ? 'bg-black/20 border-white/5 opacity-40' : 'bg-black/40 border-white/5'}`}>
+                                      <div className="flex items-center gap-2">
+                                        {isWinner && <span className="material-symbols-outlined text-sm text-[#FFD700]" style={{fontVariationSettings:"'FILL' 1"}}>emoji_events</span>}
+                                        <span className={`font-headline font-black text-sm uppercase tracking-tight ${isWinner ? 'text-[#FFD700]' : sfWinner ? 'text-white' : 'text-secondary'}`}>{finalOpponent}</span>
+                                      </div>
+                                      <span className={`font-headline font-black text-2xl italic ${isWinner ? 'text-[#FFD700]' : sfWinner ? 'text-white' : 'text-secondary/40'}`}>{getFinalScore(finalOpponent)}</span>
+                                    </div>
+                                  )
+                                })()}
+                                {!finalMatch && !sfWinner && <span className="text-[7px] font-black text-secondary/30 uppercase tracking-widest">AWAITING SF RESULT</span>}
+                              </div>
+                            </div>
+
+                            {/* Trophy / Champion */}
+                            <div className={`flex flex-col items-center gap-2 pt-2 transition-all ${champion ? 'opacity-100' : 'opacity-30'}`}>
+                              <span className="material-symbols-outlined text-6xl text-[#FFD700]" style={{fontVariationSettings: champion ? "'FILL' 1" : "'FILL' 0"}}>emoji_events</span>
+                              {champion
+                                ? <span className="font-headline font-black text-sm text-[#FFD700] uppercase tracking-[0.2em] text-center">{champion}</span>
+                                : <span className="text-[8px] font-black text-[#FFD700]/30 uppercase tracking-[0.3em]">CHAMPION</span>
+                              }
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {/* Scorer Standings Section */}
                 <div className="space-y-6">
