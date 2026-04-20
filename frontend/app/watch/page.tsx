@@ -610,6 +610,7 @@ function WatchHubContent() {
                 {(() => {
                   // --- Derive all bracket state from fixtures ---
                   const sfMatch = fixtures.find(f =>
+                    f.bracket_type === 'sf' &&
                     (f.team_a?.name === 'NM VII SHADOWS' || f.team_b?.name === 'NM VII SHADOWS') &&
                     (f.team_a?.name === 'NM TRAPLORDS' || f.team_b?.name === 'NM TRAPLORDS')
                   )
