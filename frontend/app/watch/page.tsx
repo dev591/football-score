@@ -329,149 +329,169 @@ function WatchHubContent() {
             <div className="space-y-6">
                {/* Mobile Sub-Navigation for LIVE Tab */}
                <div className="lg:hidden flex gap-2 mb-4">
-                  <button 
-                    onClick={() => setMobileLiveMode('timeline')}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest border border-white/5 ${mobileLiveMode === 'timeline' ? 'bg-primary-container text-white' : 'bg-surface-container-low text-secondary'}`}
-                  >
-                    TIMELINE
-                  </button>
-                  <button 
-                    onClick={() => setMobileLiveMode('lineups')}
-                    className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest border border-white/5 ${mobileLiveMode === 'lineups' ? 'bg-primary-container text-white' : 'bg-surface-container-low text-secondary'}`}
-                  >
-                    LINEUPS
-                  </button>
+                  <button onClick={() => setMobileLiveMode('timeline')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest border border-white/5 ${mobileLiveMode === 'timeline' ? 'bg-primary-container text-white' : 'bg-surface-container-low text-secondary'}`}>TIMELINE</button>
+                  <button onClick={() => setMobileLiveMode('lineups')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest border border-white/5 ${mobileLiveMode === 'lineups' ? 'bg-primary-container text-white' : 'bg-surface-container-low text-secondary'}`}>LINEUPS</button>
                </div>
 
-               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  {/* SQUADS (SIDEBAR ON DESKTOP, SUB-TAB ON MOBILE) */}
-                  <div className={`lg:col-span-3 space-y-6 ${mobileLiveMode === 'lineups' ? 'block' : 'hidden lg:block'}`}>
+               {!liveMatch && (
+                 <div className="flex flex-col items-center justify-center py-32 gap-6 opacity-30">
+                   <div className="relative"><span className="material-symbols-outlined text-8xl text-secondary">sensors_off</span><div className="absolute inset-0 rounded-full bg-secondary/5 animate-ping"></div></div>
+                   <div className="text-center"><h3 className="font-headline font-black text-2xl uppercase italic tracking-tighter text-white">NO SIGNAL</h3><p className="text-[9px] font-black uppercase tracking-[0.4em] text-secondary mt-2">WAITING FOR NEXT BROADCAST</p></div>
+                 </div>
+               )}
+
+               {liveMatch && <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* ===== LEFT: SQUADS ===== */}
+                  <div className={`lg:col-span-3 space-y-4 ${mobileLiveMode === 'lineups' ? 'block' : 'hidden lg:block'}`}>
                      {[liveMatch?.team_a, liveMatch?.team_b].map((team, idx) => {
                        const isA = idx === 0
                        const teamId = isA ? liveMatch?.team_a_id : liveMatch?.team_b_id
                        const players = isA ? teamAPlayers : teamBPlayers
                        const pitch = getPitchPlayers(teamId || '', players)
                        const bench = getBenchPlayers(teamId || '', players)
-
+                       const teamScore = isA ? liveMatch.score_a : liveMatch.score_b
                        return (
-                        <div key={idx} className="bg-surface-container-high border-t-2 border-primary-container p-5 md:p-6 shadow-xl space-y-6">
-                           <div className="flex flex-col border-b border-white/5 pb-4">
-                              <h3 className="font-headline font-black text-[10px] tracking-widest text-primary-container uppercase leading-none mb-1">{team?.name}</h3>
-                              {team?.owner_name && <span className="text-[7px] md:text-[8px] font-black text-secondary uppercase tracking-widest italic opacity-60">OWNER: {team.owner_name}</span>}
-                           </div>
-                           
-                           <div className="space-y-6">
-                              <div className="space-y-2">
-                                 <span className="text-[7px] font-black text-secondary uppercase tracking-widest">ON PITCH (STARTERS)</span>
-                                 {pitch.map(p => {
-                                   const goals = liveMatch ? getPlayerGoalCount(p.id, teamId || '') : 0
-                                   const yellow = liveMatch ? getPlayerCardCount(p.id, teamId || '', 'yellow') : 0
-                                   const red = liveMatch ? getPlayerCardCount(p.id, teamId || '', 'red') : 0
-                                   
-                                   return (
-                                     <div key={p.id} className={`flex justify-between items-center bg-black/40 p-3 border-l-2 ${benchTimers[p.id] ? 'border-tertiary shadow-[0_0_15px_rgba(255,183,77,0.1)]' : 'border-primary-container'}`}>
-                                        <div className="flex flex-col">
-                                           <span className="text-[11px] font-black uppercase text-white truncate max-w-[120px] flex items-center gap-2">
-                                              {p.is_captain && <span className="text-tertiary text-[9px]">(C)</span>} {p.name}
-                                              {benchTimers[p.id] && (
-                                                <span className="px-1.5 py-0.5 bg-tertiary text-black text-[7px] font-black animate-pulse rounded-xs">
-                                                  {Math.floor(benchTimers[p.id] / 60)}:{String(benchTimers[p.id] % 60).padStart(2, '0')}
-                                                </span>
-                                              )}
-                                           </span>
-                                           <div className="flex gap-1 mt-1">
-                                              {yellow > 0 && <div className="w-2 h-3 bg-tertiary shadow-[0_0_5px_rgba(255,183,77,0.5)]"></div>}
-                                              {red > 0 && <div className="w-2 h-3 bg-error shadow-[0_0_5px_rgba(230,33,39,0.5)]"></div>}
-                                           </div>
-                                        </div>
-                                        {goals > 0 && <span className="bg-primary-container text-white text-[9px] font-black px-2 py-0.5 rounded-full">⚽ {goals}</span>}
+                        <div key={idx} className="relative bg-surface-container-high border border-white/5 overflow-hidden">
+                           <div className="absolute inset-0 bg-primary-container/[0.03] animate-pulse pointer-events-none"></div>
+                           <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary-container to-transparent opacity-60"></div>
+                           <div className="p-5 relative z-10">
+                             <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
+                               <div><h3 className="font-headline font-black text-xs tracking-widest text-white uppercase leading-none">{team?.name}</h3>{team?.owner_name && <span className="text-[7px] font-black text-secondary uppercase tracking-widest opacity-40">{team.owner_name}</span>}</div>
+                               <span className="font-headline font-black text-4xl italic text-white leading-none">{teamScore ?? 0}</span>
+                             </div>
+                             <div className="space-y-1.5">
+                               <span className="text-[7px] font-black text-primary-container/60 uppercase tracking-widest">ON PITCH</span>
+                               {pitch.map(p => {
+                                 const goals = getPlayerGoalCount(p.id, teamId || '')
+                                 const yellow = getPlayerCardCount(p.id, teamId || '', 'yellow')
+                                 const red = getPlayerCardCount(p.id, teamId || '', 'red')
+                                 const onBench = !!benchTimers[p.id]
+                                 return (
+                                   <div key={p.id} className={`flex justify-between items-center px-3 py-2 border-l-2 transition-all ${onBench ? 'border-tertiary bg-tertiary/5 shadow-[0_0_10px_rgba(255,183,77,0.1)]' : goals > 0 ? 'border-primary-container bg-primary-container/5' : 'border-white/10 bg-black/20'}`}>
+                                     <div className="flex items-center gap-2">
+                                       {p.is_captain && <span className="text-tertiary text-[8px] font-black">(C)</span>}
+                                       <span className="text-[10px] font-black uppercase text-white truncate max-w-[90px]">{p.name}</span>
+                                       {onBench && <span className="text-[7px] font-black bg-tertiary text-black px-1.5 py-0.5 animate-pulse">{Math.floor(benchTimers[p.id]/60)}:{String(benchTimers[p.id]%60).padStart(2,'0')}</span>}
                                      </div>
-                                   )
-                                 })}
-                                 {pitch.length === 0 && <div className="p-4 border border-white/5 text-center text-[8px] font-black opacity-20 uppercase italic tracking-widest">Awaiting Lineup</div>}
-                              </div>
-
-                              {bench.length > 0 && (
-                                <div className="space-y-2 opacity-50 hover:opacity-100 transition-opacity pt-4 border-t border-white/5">
-                                   <span className="text-[7px] font-black text-secondary uppercase tracking-widest">BENCH</span>
-                                   <div className="grid grid-cols-1 gap-1">
-                                      {bench.map(p => (
-                                        <div key={p.id} className="bg-black/20 p-2 text-[9px] font-bold text-secondary uppercase">{p.name}</div>
-                                      ))}
+                                     <div className="flex items-center gap-1.5">
+                                       {goals > 0 && <span className="text-[9px]">⚽{goals}</span>}
+                                       {yellow > 0 && <div className="w-2 h-3 bg-tertiary"></div>}
+                                       {red > 0 && <div className="w-2 h-3 bg-error"></div>}
+                                     </div>
                                    </div>
-                                </div>
-                              )}
+                                 )
+                               })}
+                               {pitch.length === 0 && <div className="py-4 text-center text-[8px] font-black opacity-20 uppercase italic">Awaiting Lineup</div>}
+                             </div>
+                             {bench.length > 0 && (
+                               <div className="mt-3 pt-3 border-t border-white/5 space-y-1">
+                                 <span className="text-[7px] font-black text-secondary/40 uppercase tracking-widest">BENCH</span>
+                                 {bench.map(p => (<div key={p.id} className="px-3 py-1.5 bg-black/20 text-[9px] font-bold text-secondary/50 uppercase">{p.name}</div>))}
+                               </div>
+                             )}
                            </div>
                         </div>
                        )
                      })}
                   </div>
 
-                  {/* LIVE FEED (MAIN CONTENT) */}
-                  <div className={`lg:col-span-6 space-y-6 ${mobileLiveMode === 'timeline' ? 'block' : 'hidden lg:block'}`}>
-                     <div className="bg-surface-container-high inner-stroke-top p-6 md:p-10 min-h-[400px] border border-white/5 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-full -translate-y-16 translate-x-16"></div>
-                        <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-5 relative z-10">
-                           <h3 className="font-headline font-black text-[10px] md:text-xs tracking-widest uppercase italic flex items-center gap-3">
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span> KEY EVENTS
-                           </h3>
-                           <span className="text-[8px] md:text-[9px] font-black text-secondary uppercase tracking-widest bg-black/60 px-3 py-1 border border-white/5">{liveEvents.length} MOMENTS</span>
+                  {/* ===== CENTER: LIVE FEED ===== */}
+                  <div className={`lg:col-span-6 space-y-4 ${mobileLiveMode === 'timeline' ? 'block' : 'hidden lg:block'}`}>
+                    {/* STATUS BAR */}
+                    <div className={`relative overflow-hidden flex items-center justify-between px-5 py-3 border ${liveMatch.status === 'live' ? 'bg-primary-container/10 border-primary-container/40 shadow-[0_0_30px_rgba(230,33,39,0.15)]' : 'bg-surface-container-high border-white/5'}`}>
+                      {liveMatch.status === 'live' && <div className="absolute inset-0 bg-gradient-to-r from-primary-container/5 via-transparent to-primary-container/5 animate-pulse pointer-events-none"></div>}
+                      <div className="flex items-center gap-3 relative z-10">
+                        {liveMatch.status === 'live' ? <><div className="w-2 h-2 rounded-full bg-primary-container animate-ping"></div><span className="text-[9px] font-black text-primary-container uppercase tracking-[0.3em]">LIVE BROADCAST</span></> : <span className="text-[9px] font-black text-secondary uppercase tracking-[0.3em]">FULL TIME</span>}
+                      </div>
+                      <div className="flex items-center gap-4 relative z-10">
+                        <span className="font-headline font-black text-2xl italic text-white">{elapsedMinutes}'</span>
+                        {liveMatch.stoppage_time! > 0 && <span className="text-[10px] font-black text-primary-container">+{liveMatch.stoppage_time}</span>}
+                      </div>
+                    </div>
+
+                    {/* TIMELINE */}
+                    <div className="relative bg-surface-container-high border border-white/5 overflow-hidden" style={{minHeight: '400px'}}>
+                      {liveMatch.status === 'live' && <div className="absolute inset-0 pointer-events-none"><div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary-container/5 rounded-full blur-3xl animate-pulse"></div></div>}
+                      <div className="p-6 relative z-10">
+                        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
+                          <div className="flex items-center gap-3">
+                            {liveMatch.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>}
+                            <span className="font-headline font-black text-[10px] tracking-widest uppercase italic">KEY EVENTS</span>
+                          </div>
+                          <span className="text-[8px] font-black text-secondary bg-black/60 px-3 py-1 border border-white/5">{liveEvents.length} MOMENTS</span>
                         </div>
-                        
-                        <div className="space-y-6 md:space-y-10 relative z-10">
-                          {liveEvents.length > 0 ? [...liveEvents].reverse().map((event, i) => (
-                            <div key={event.id} className="flex gap-4 md:gap-6 items-start group">
-                               <div className={`mt-1 w-8 h-8 md:w-12 md:h-12 flex items-center justify-center shrink-0 border-2 shadow-2xl ${
-                                 event.type === 'goal' ? 'border-primary-container bg-primary-container/20 text-primary-container' :
-                                 event.type === 'yellow' ? 'border-tertiary bg-tertiary/20 text-tertiary' :
-                                 event.type === 'red' ? 'border-error bg-error/20 text-error' : 'border-secondary bg-secondary/20 text-secondary'
-                               }`}>
-                                  <span className="material-symbols-outlined text-sm md:text-2xl">
-                                    {event.type === 'goal' ? 'sports_soccer' : event.type === 'yellow' || event.type === 'red' ? 'rectangle' : 'cached'}
-                                  </span>
-                               </div>
-                               <div className="flex-1 border-b border-white/[0.03] pb-5 md:pb-8">
-                                  <div className="flex justify-between items-center mb-1">
-                                     <span className="font-headline font-black text-xs md:text-lg uppercase tracking-tight text-white">{event.type === 'sub' ? 'SUBSTITUTION' : event.type.toUpperCase()}</span>
-                                     <span className="text-[10px] md:text-xs font-black text-tertiary italic">{event.minute}'</span>
+                        <div className="space-y-4">
+                          {liveEvents.length > 0 ? [...liveEvents].reverse().map((event, i) => {
+                            const isGoal = event.type === 'goal'
+                            const isYellow = event.type === 'yellow'
+                            const isRed = event.type === 'red'
+                            const isSub = event.type === 'sub'
+                            const isFirst = i === 0
+                            return (
+                              <div key={event.id} className={`flex gap-4 items-start ${isFirst && liveMatch.status === 'live' ? 'animate-in slide-in-from-top-4 duration-500' : ''}`}>
+                                <div className={`shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border-2 shadow-lg ${isGoal ? 'border-primary-container bg-primary-container/20 text-primary-container shadow-[0_0_20px_rgba(230,33,39,0.3)]' : isYellow ? 'border-tertiary bg-tertiary/20 text-tertiary shadow-[0_0_15px_rgba(255,183,77,0.2)]' : isRed ? 'border-error bg-error/20 text-error shadow-[0_0_15px_rgba(230,33,39,0.2)]' : 'border-secondary/30 bg-secondary/10 text-secondary'}`}>
+                                  <span className="material-symbols-outlined text-lg md:text-2xl" style={isGoal || isYellow || isRed ? {fontVariationSettings:"'FILL' 1"} : {}}>{isGoal ? 'sports_soccer' : isYellow || isRed ? 'rectangle' : 'cached'}</span>
+                                </div>
+                                <div className={`flex-1 pb-4 border-b ${isGoal ? 'border-primary-container/10' : 'border-white/[0.04]'}`}>
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <span className={`font-headline font-black text-sm md:text-base uppercase tracking-tight ${isGoal ? 'text-white' : isYellow ? 'text-tertiary' : isRed ? 'text-error' : 'text-secondary'}`}>{isSub ? 'SUBSTITUTION' : isGoal ? '⚽ GOAL!' : event.type.toUpperCase()}</span>
+                                      <p className="text-[10px] font-bold text-secondary/70 uppercase tracking-widest mt-1">
+                                        {isSub ? <span className="flex items-center gap-2"><span className="text-error font-black">↓ OUT</span> {event.player?.name || event.player_id} <span className="text-tertiary font-black">↑ IN</span> {(event as any).player_in?.name || event.player_in_id}</span> : <span>{event.player?.name || event.player_id} <span className="opacity-30 mx-1">/</span> {event.team?.name}</span>}
+                                      </p>
+                                    </div>
+                                    <span className={`font-headline font-black text-lg italic shrink-0 ml-4 ${isGoal ? 'text-primary-container' : 'text-secondary/40'}`}>{event.minute}'</span>
                                   </div>
-                                  <p className="text-[10px] md:text-[13px] font-bold text-secondary uppercase tracking-widest leading-relaxed">
-                                     {event.type === 'sub' ? 
-                                       <span className="flex items-center gap-2"><span className="text-error">↓</span> {event.player?.name || event.player_id} <span className="text-tertiary">↑</span> {(event as any).player_in?.name || event.player_in_id}</span> : 
-                                       <span className="opacity-80">{event.player?.name || event.player_id} <span className="opacity-40 mx-2">/</span> {event.team?.name}</span>
-                                     }
-                                  </p>
-                               </div>
-                            </div>
-                          )) : (
-                            <div className="py-24 text-center opacity-20">
-                               <span className="material-symbols-outlined text-6xl md:text-8xl mb-6">sensors_off</span>
-                               <div className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.5em] italic">AWAITING LIVE DATA FEED</div>
+                                </div>
+                              </div>
+                            )
+                          }) : (
+                            <div className="py-20 flex flex-col items-center gap-4 opacity-20">
+                              <div className="relative"><span className="material-symbols-outlined text-6xl text-secondary">sensors</span>{liveMatch.status === 'live' && <div className="absolute inset-0 flex items-center justify-center"><div className="w-16 h-16 rounded-full border border-secondary/20 animate-ping"></div></div>}</div>
+                              <span className="text-[9px] font-black uppercase tracking-[0.4em] italic">{liveMatch.status === 'live' ? 'MATCH IN PROGRESS...' : 'NO EVENTS RECORDED'}</span>
                             </div>
                           )}
                         </div>
-                     </div>
+                      </div>
+                    </div>
                   </div>
-                  
-                  {/* STATS (DESKTOP ONLY) */}
-                  <div className="lg:col-span-3 space-y-6 hidden lg:block">
-                     <div className="bg-surface-container-high border-t-2 border-tertiary p-6 shadow-xl">
-                        <h3 className="font-headline font-black text-[10px] tracking-widest text-tertiary uppercase mb-6">DISCIPLINE TRACKER</h3>
-                        <div className="space-y-4">
-                           {liveEvents.filter(e => e.type === 'yellow' || e.type === 'red').slice(0, 5).map(e => (
-                             <div key={e.id} className="flex justify-between items-center bg-black/40 p-3">
-                                <div className="flex flex-col">
-                                   <span className="text-[11px] font-black uppercase text-white">{e.player_id}</span>
-                                   <span className="text-[8px] font-bold text-secondary uppercase italic">{e.team?.name}</span>
-                                </div>
-                                <div className={`w-3 h-4 ${e.type === 'yellow' ? 'bg-tertiary' : 'bg-error'}`}></div>
-                             </div>
-                           ))}
-                           {liveEvents.filter(e => e.type === 'yellow' || e.type === 'red').length === 0 && <span className="text-[9px] opacity-20 uppercase font-bold italic">Clean Records Found</span>}
+
+                  {/* ===== RIGHT: DISCIPLINE + SCORERS ===== */}
+                  <div className="lg:col-span-3 space-y-4 hidden lg:block">
+                    <div className="bg-surface-container-high border border-white/5 overflow-hidden">
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/5"><span className="w-1 h-4 bg-tertiary"></span><h3 className="font-headline font-black text-[9px] tracking-widest text-tertiary uppercase">DISCIPLINE</h3></div>
+                        <div className="space-y-2">
+                          {liveEvents.filter(e => e.type === 'yellow' || e.type === 'red').length > 0
+                            ? liveEvents.filter(e => e.type === 'yellow' || e.type === 'red').slice(0,6).map(e => (
+                              <div key={e.id} className="flex justify-between items-center bg-black/30 px-3 py-2 border border-white/5">
+                                <div><span className="text-[10px] font-black uppercase text-white block">{e.player?.name || e.player_id}</span><span className="text-[7px] font-bold text-secondary uppercase">{e.team?.name} · {e.minute}'</span></div>
+                                <div className={`w-3 h-4 shadow-lg ${e.type === 'yellow' ? 'bg-tertiary shadow-tertiary/30' : 'bg-error shadow-error/30'}`}></div>
+                              </div>
+                            ))
+                            : <div className="py-8 text-center text-[8px] font-black opacity-20 uppercase italic tracking-widest">Clean Sheet</div>
+                          }
                         </div>
-                     </div>
+                      </div>
+                    </div>
+                    {liveEvents.filter(e => e.type === 'goal').length > 0 && (
+                      <div className="bg-surface-container-high border border-white/5 overflow-hidden">
+                        <div className="p-5">
+                          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/5"><span className="w-1 h-4 bg-primary-container"></span><h3 className="font-headline font-black text-[9px] tracking-widest text-primary-container uppercase">SCORERS</h3></div>
+                          <div className="space-y-2">
+                            {liveEvents.filter(e => e.type === 'goal').map(e => (
+                              <div key={e.id} className="flex justify-between items-center bg-primary-container/5 px-3 py-2 border border-primary-container/10">
+                                <div><span className="text-[10px] font-black uppercase text-white block">⚽ {e.player?.name || e.player_id}</span><span className="text-[7px] font-bold text-secondary uppercase">{e.team?.name}</span></div>
+                                <span className="font-headline font-black text-sm italic text-primary-container">{e.minute}'</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-               </div>
+
+               </div>}
             </div>
           )}
 
